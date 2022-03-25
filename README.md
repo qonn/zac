@@ -1,2 +1,5 @@
-# zac
-Just another programming language.
+# Zac Programming Language
+Zac is a simple programming language that compiles to js.
+
+## Why
+Frustration with the constant increasing complexity of TypeScript.
