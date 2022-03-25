@@ -1,0 +1,13 @@
+fn string_from(what: Number) {
+    `#{what}`
+}
+
+fn add(a: Number, b: Number) {
+    string_from(4 + 5)
+}
+
+fn log(what: String) {
+    `console.log(#{what})`
+}
+
+log(add(5, 10))
