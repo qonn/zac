@@ -5,11 +5,10 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct Lexer {
-    content: String,
-    tokens: Vec<Token>,
-    len: usize,
-    pos: usize,
-    lines: usize,
+    pub content: String,
+    pub len: usize,
+    pub pos: usize,
+    pub lines: usize,
 }
 
 impl Lexer {
@@ -19,18 +18,9 @@ impl Lexer {
         Lexer {
             content,
             len,
-            tokens: vec![],
             pos: 0,
             lines: 0,
         }
-    }
-
-    pub fn lex(mut self) -> Self {
-        while let Some(token) = self.get_next_token() {
-            self.tokens.push(token);
-        }
-
-        self
     }
 
     pub fn char(&self) -> Option<char> {
@@ -43,6 +33,8 @@ impl Lexer {
 
     pub fn get_next_token(&mut self) -> Option<Token> {
         while let Some(c) = self.char() {
+            let span = self.span();
+
             match c {
                 _ if self.char_is_word() => {
                     return Some(self.collect_id());
@@ -53,72 +45,30 @@ impl Lexer {
                 _ if self.char_is_tilde() => {
                     return Some(self.collect_js());
                 }
-                _ if self.char_is_numeric() => {
+                _ if self.char_is_numeric(false) => {
                     return Some(self.collect_numeric());
                 }
-                '=' => {
-                    return Some(self.advance_with_token(Token::Eq {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
-                '+' => {
-                    return Some(self.advance_with_token(Token::Plus {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
-                '-' => {
-                    return Some(self.advance_with_token(Token::Minus {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
-                '/' => {
-                    return Some(self.advance_with_token(Token::Divide {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
+                '=' => return Some(self.advance_with_token(Token::Eq(String::from(""), span))),
+                '+' => return Some(self.advance_with_token(Token::Plus(String::from(""), span))),
+                '-' => return Some(self.advance_with_token(Token::Minus(String::from(""), span))),
+                '/' => return Some(self.advance_with_token(Token::Divide(String::from(""), span))),
                 '*' => {
-                    return Some(self.advance_with_token(Token::Multiply {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
+                    return Some(self.advance_with_token(Token::Multiply(String::from(""), span)))
                 }
-                '{' => {
-                    return Some(self.advance_with_token(Token::LBrace {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
-                '}' => {
-                    return Some(self.advance_with_token(Token::RBrace {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
-                '(' => {
-                    return Some(self.advance_with_token(Token::LParen {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
-                ')' => {
-                    return Some(self.advance_with_token(Token::RParen {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
-                }
+                '{' => return Some(self.advance_with_token(Token::LBrace(String::from(""), span))),
+                '}' => return Some(self.advance_with_token(Token::RBrace(String::from(""), span))),
+                '(' => return Some(self.advance_with_token(Token::LParen(String::from(""), span))),
+                ')' => return Some(self.advance_with_token(Token::RParen(String::from(""), span))),
                 ':' => {
-                    return Some(self.advance_with_token(Token::DblColon {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
+                    return Some(self.advance_with_token(Token::DblColon(String::from(""), span)))
                 }
-                ',' => {
-                    return Some(self.advance_with_token(Token::Comma {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }))
+                ',' => return Some(self.advance_with_token(Token::Comma(String::from(""), span))),
+                '\n' => {
+                    self.lines += 1;
+                    return Some(self.advance_with_token(Token::NewLine(String::from(""), span)));
                 }
                 ' ' | '\t' | '\r' => {
                     self.skip_whitespace();
-                }
-                '\n' => {
-                    self.lines += 1;
-                    return Some(self.advance_with_token(Token::NewLine {
-                        span: SourceSpan::new(self.lines, self.pos, self.pos + 1),
-                    }));
                 }
                 _ => {
                     ErrorMessage::new(
@@ -141,6 +91,9 @@ impl Lexer {
         self
     }
 
+    pub fn span(&mut self) -> SourceSpan {
+        SourceSpan::new(self.lines, self.pos, self.pos + 1)
+    }
     pub fn advance_with_token(&mut self, token: Token) -> Token {
         self.advance();
         token
@@ -178,9 +131,9 @@ impl Lexer {
         }
     }
 
-    pub fn char_is_numeric(&self) -> bool {
+    pub fn char_is_numeric(&self, include_dot: bool) -> bool {
         if let Some(c) = self.char() {
-            (c >= '0' && c <= '9') || c == '.'
+            (c >= '0' && c <= '9') || if include_dot { c == '.' } else { false }
         } else {
             false
         }
@@ -203,10 +156,10 @@ impl Lexer {
 
         let end_pos = self.pos;
 
-        Token::Id {
-            span: SourceSpan::new(self.lines, start_pos, end_pos),
-            content: self.content[start_pos..end_pos].to_string(),
-        }
+        Token::Id(
+            self.content[start_pos..end_pos].to_string(),
+            SourceSpan::new(self.lines, start_pos, end_pos),
+        )
     }
 
     fn collect_string(&mut self) -> Token {
@@ -224,10 +177,10 @@ impl Lexer {
 
         self.advance();
 
-        Token::Str {
-            span: SourceSpan::new(self.lines, start_pos, end_pos),
-            content: collected_string,
-        }
+        Token::Str(
+            collected_string,
+            SourceSpan::new(self.lines, start_pos, end_pos),
+        )
     }
 
     fn collect_js(&mut self) -> Token {
@@ -245,16 +198,16 @@ impl Lexer {
 
         self.advance();
 
-        Token::Js {
-            span: SourceSpan::new(self.lines, start_pos, end_pos),
-            content: collected_string,
-        }
+        Token::Js(
+            collected_string,
+            SourceSpan::new(self.lines, start_pos, end_pos),
+        )
     }
 
     fn collect_numeric(&mut self) -> Token {
         let start_pos = self.pos;
 
-        while self.char_is_numeric() {
+        while self.char_is_numeric(true) {
             self.advance();
         }
 
@@ -262,13 +215,13 @@ impl Lexer {
 
         let collected_string = self.content[start_pos..end_pos].to_string();
 
-        Token::Numeric {
-            span: SourceSpan::new(self.lines, start_pos, end_pos),
-            content: collected_string,
-        }
+        Token::Numeric(
+            collected_string,
+            SourceSpan::new(self.lines, start_pos, end_pos),
+        )
     }
 }
 
-pub(crate) fn lex(content: String) -> Vec<Token> {
-    Lexer::new(content).lex().tokens.clone()
+pub(crate) fn new(content: String) -> Lexer {
+    Lexer::new(content)
 }

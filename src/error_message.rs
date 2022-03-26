@@ -69,8 +69,9 @@ impl ErrorMessage {
         println!("");
         println!("{}", partial_content);
         println!("      | ");
+        println!("");
 
-        println!("      | note: {}", self.message);
+        println!("\x1b[91mError\x1b[0m: {}", self.message);
         println!("");
     }
 
