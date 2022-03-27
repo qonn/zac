@@ -10,9 +10,9 @@ mod token;
 fn main() {
     println!("");
     println!("parsing...");
-    let content = String::from_utf8_lossy(&fs::read("samples/variables.zac").unwrap()).to_string();
+    let content = String::from_utf8_lossy(&fs::read("samples/functions.zac").unwrap()).to_string();
     let mut lexer = lexer::new(content);
     let mut parser = parser::parse(&mut lexer);
     let ast = parser.parse();
-    println!("successfully parse!");
+    println!("successfully parse!\n\n{:#?}", ast);
 }

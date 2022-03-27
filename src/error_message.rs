@@ -113,7 +113,9 @@ impl ErrorMessage {
             if c == '\n' {
                 found_counter += 1;
                 result = SourceSpan::new(line, curr_pos, curr_pos + 1);
-                line -= 1;
+                if line > 0 {
+                    line -= 1;
+                }
             }
         }
 

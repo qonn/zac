@@ -36,40 +36,68 @@ impl<'a> Parser<'a> {
 
         body.append(&mut self.parse_statement());
 
-        while let Some(token) = &self.current_token {
+        while let Some(_) = &self.current_token {
             self.eat(TokenKind::NewLine);
             body.append(&mut self.parse_statement());
         }
 
-        let mut ast = AST::Root { body };
+        let ast = AST::Root { body };
 
         ast
     }
 
     pub fn parse_statement(&mut self) -> Vec<AST> {
         if let Some(token) = &self.current_token {
-            match token {
-                Token::Id(_, _) => return self.parse_id(),
+            match TokenKind::from(token) {
+                TokenKind::Js => return self.parse_js_literal(),
+                TokenKind::Id => return self.parse_id(),
                 _ => {}
             }
         }
 
-        vec![AST::Noop]
+        vec![]
     }
 
     pub fn parse_id(&mut self) -> Vec<AST> {
         let value = self.current_token_value();
+        self.eat(TokenKind::Id);
 
-        match value.as_str() {
+        let result = match value.as_str() {
             "let" => self.parse_variable_definition(),
-            _ => vec![AST::Identifier {
-                value: value.into(),
-            }],
+            "fn" => self.parse_function_definition(),
+            _ => {
+                let callee = AST::Identifier { value };
+                match self.current_token_kind() {
+                    TokenKind::LParen => self.parse_function_call(Box::new(callee)),
+                    _ => vec![callee],
+                }
+            }
+        };
+
+        return result;
+    }
+
+    pub fn parse_function_call(&mut self, callee: Box<AST>) -> Vec<AST> {
+        self.eat(TokenKind::LParen);
+        let mut args = self.parse_expression();
+
+        while let Some(_) = &self.current_token {
+            match self.current_token_kind() {
+                TokenKind::RParen => break,
+                TokenKind::NewLine => break,
+                _ => {
+                    args.append(&mut self.parse_expression());
+                    self.eat_optional(TokenKind::Comma);
+                }
+            }
         }
+
+        let ast = vec![AST::FunctionCall { callee, args }];
+        self.eat(TokenKind::RParen);
+        ast
     }
 
     pub fn parse_variable_definition(&mut self) -> Vec<AST> {
-        self.eat(TokenKind::Id);
         self.expect_next(TokenKind::Id);
         let name = self.current_token_value();
         self.eat(TokenKind::Id);
@@ -77,6 +105,48 @@ impl<'a> Parser<'a> {
         self.eat(TokenKind::Eq);
         let value = self.parse_expression();
         vec![AST::VariableDefinition { name, value }]
+    }
+
+    pub fn parse_function_definition(&mut self) -> Vec<AST> {
+        let name = self.current_token_value();
+        self.eat(TokenKind::Id);
+
+        self.eat(TokenKind::LParen);
+        let mut args = vec![];
+        args.append(&mut self.parse_function_argument_definition());
+        while let Some(_) = &self.current_token {
+            if self.current_token_kind() == TokenKind::RParen {
+                break;
+            }
+            args.append(&mut self.parse_function_argument_definition());
+        }
+        self.eat(TokenKind::RParen);
+
+        self.eat(TokenKind::LBrace);
+        self.eat_newline_indefinitely();
+        let mut body = vec![];
+        body.append(&mut self.parse_statement());
+        while let Some(Token::NewLine(_, _)) = &self.current_token {
+            self.eat(TokenKind::NewLine);
+            body.append(&mut self.parse_statement());
+        }
+
+        // self.eat_newline_until(TokenKind::RBrace);
+        self.eat(TokenKind::RBrace);
+
+        let result = vec![AST::FunctionDefinition { name, args, body }];
+        return result;
+    }
+
+    pub fn parse_function_argument_definition(&mut self) -> Vec<AST> {
+        let name = self.current_token_value();
+        self.eat(TokenKind::Id);
+        self.eat(TokenKind::DblColon);
+        let kind = self.current_token_value();
+        self.eat(TokenKind::Id);
+        self.eat_optional(TokenKind::Comma);
+        let result = vec![AST::FunctionArgumentDefinition { name, kind }];
+        return result;
     }
 
     pub fn parse_expression(&mut self) -> Vec<AST> {
@@ -96,7 +166,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        vec![AST::Noop]
+        vec![]
     }
 
     pub fn parse_parenthesis_expression(&mut self) -> Vec<AST> {
@@ -116,6 +186,12 @@ impl<'a> Parser<'a> {
         let value = self.current_token_value();
         self.eat(TokenKind::Numeric);
         vec![AST::NumberLiteral { value }]
+    }
+
+    pub fn parse_js_literal(&mut self) -> Vec<AST> {
+        let value = self.current_token_value();
+        self.eat(TokenKind::Js);
+        vec![AST::JsLiteral { value }]
     }
 
     pub fn parse_binary_expression(&mut self, left: Vec<AST>) -> Vec<AST> {
@@ -172,6 +248,49 @@ impl<'a> Parser<'a> {
         self.throw_unexpected_token(&kind)
     }
 
+    pub fn eat_optional(&mut self, kind: TokenKind) {
+        if let Some(token) = &self.current_token {
+            if TokenKind::from(token) == kind {
+                self.previous_token = self.current_token.clone();
+                self.current_token = self.lexer.get_next_token();
+            }
+        }
+    }
+
+    pub fn eat_newline_until(&mut self, kind: TokenKind) {
+        while let Some(token) = &self.current_token {
+            match TokenKind::from(token) {
+                tok if tok == kind => {
+                    self.previous_token = self.current_token.clone();
+                    self.current_token = self.lexer.get_next_token();
+                    return;
+                }
+                TokenKind::NewLine => {
+                    self.previous_token = self.current_token.clone();
+                    self.current_token = self.lexer.get_next_token();
+                }
+                _ => self.throw_unexpected_token(&kind),
+            }
+        }
+
+        self.throw_unexpected_token(&kind)
+    }
+
+    pub fn eat_newline_indefinitely(&mut self) {
+        while let Some(token) = &self.current_token {
+            match TokenKind::from(token) {
+                tok if tok != TokenKind::NewLine => {
+                    return;
+                }
+                TokenKind::NewLine => {
+                    self.previous_token = self.current_token.clone();
+                    self.current_token = self.lexer.get_next_token();
+                }
+                _ => self.throw_unexpected_token(&TokenKind::NewLine),
+            }
+        }
+    }
+
     pub fn expect_next(&mut self, kind: TokenKind) {
         if let Some(token) = &self.current_token {
             if TokenKind::from(token) == kind {
@@ -186,14 +305,14 @@ impl<'a> Parser<'a> {
     pub fn throw_unexpected_token(&self, kind: &TokenKind) {
         let content = self.lexer.content.clone();
         let source_span = self.current_token_source_span().clone();
-        let pos = self.lexer.pos.clone();
+        let current_token = self.current_token_or_unknown();
 
         ErrorMessage::new(
             "".into(),
             content,
             format!(
                 "Unexpected token {:?}, expecting token with type {:?}",
-                &self.current_token, kind
+                current_token, kind
             ),
             source_span.from,
         )
@@ -202,8 +321,16 @@ impl<'a> Parser<'a> {
         panic!()
     }
 
+    pub fn current_token_or_unknown(&self) -> Token {
+        self.current_token.clone().unwrap_or(Token::unknown())
+    }
+
+    pub fn current_token_kind(&self) -> TokenKind {
+        TokenKind::from(self.current_token_or_unknown())
+    }
+
     pub fn current_token_value(&self) -> String {
-        match self.current_token.clone().unwrap_or(Token::unknown()) {
+        match self.current_token_or_unknown() {
             Token::Id(v, _) => v,
             Token::Str(v, _) => v,
             Token::Numeric(v, _) => v,
@@ -227,7 +354,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn current_token_source_span(&self) -> SourceSpan {
-        match self.current_token.clone().unwrap_or(Token::unknown()) {
+        match self.current_token_or_unknown() {
             Token::Id(_, ss) => ss,
             Token::Str(_, ss) => ss,
             Token::Numeric(_, ss) => ss,

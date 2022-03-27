@@ -42,13 +42,17 @@ pub enum AST {
         args: Vec<AST>,
         body: Vec<AST>,
     },
+    FunctionArgumentDefinition {
+        name: String,
+        kind: String,
+    },
     BinaryExpression {
         kind: ASTBinaryExpressionKind,
         left: Vec<AST>,
         right: Vec<AST>,
     },
     FunctionCall {
-        name: String,
+        callee: Box<AST>,
         args: Vec<AST>,
     },
     Noop,
