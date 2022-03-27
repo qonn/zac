@@ -50,7 +50,11 @@ impl<'a> Parser<'a> {
         if let Some(token) = &self.current_token {
             match TokenKind::from(token) {
                 TokenKind::Js => return self.parse_js_literal(),
-                TokenKind::Id => return self.parse_id(),
+                TokenKind::Id => {
+                    let ast = self.parse_id();
+                    let ast = self.parse_binary_expression(ast);
+                    return ast;
+                }
                 _ => {}
             }
         }
@@ -79,12 +83,14 @@ impl<'a> Parser<'a> {
 
     pub fn parse_function_call(&mut self, callee: Box<AST>) -> Vec<AST> {
         self.eat(TokenKind::LParen);
+        self.eat_newline_indefinitely();
+
         let mut args = self.parse_expression();
 
         while let Some(_) = &self.current_token {
             match self.current_token_kind() {
                 TokenKind::RParen => break,
-                TokenKind::NewLine => break,
+                TokenKind::NewLine => self.eat_newline_indefinitely(),
                 _ => {
                     args.append(&mut self.parse_expression());
                     self.eat_optional(TokenKind::Comma);
@@ -93,6 +99,7 @@ impl<'a> Parser<'a> {
         }
 
         let ast = vec![AST::FunctionCall { callee, args }];
+        self.eat_newline_indefinitely();
         self.eat(TokenKind::RParen);
         ast
     }
@@ -103,6 +110,7 @@ impl<'a> Parser<'a> {
         self.eat(TokenKind::Id);
         self.expect_next(TokenKind::Eq);
         self.eat(TokenKind::Eq);
+        self.eat_newline_indefinitely();
         let value = self.parse_expression();
         vec![AST::VariableDefinition { name, value }]
     }
@@ -113,7 +121,11 @@ impl<'a> Parser<'a> {
 
         self.eat(TokenKind::LParen);
         let mut args = vec![];
-        args.append(&mut self.parse_function_argument_definition());
+
+        if self.current_token_kind() != TokenKind::RParen {
+            args.append(&mut self.parse_function_argument_definition());
+        }
+
         while let Some(_) = &self.current_token {
             if self.current_token_kind() == TokenKind::RParen {
                 break;
@@ -130,8 +142,6 @@ impl<'a> Parser<'a> {
             self.eat(TokenKind::NewLine);
             body.append(&mut self.parse_statement());
         }
-
-        // self.eat_newline_until(TokenKind::RBrace);
         self.eat(TokenKind::RBrace);
 
         let result = vec![AST::FunctionDefinition { name, args, body }];
@@ -171,7 +181,9 @@ impl<'a> Parser<'a> {
 
     pub fn parse_parenthesis_expression(&mut self) -> Vec<AST> {
         self.eat(TokenKind::LParen);
+        self.eat_newline_indefinitely();
         let result = self.parse_expression();
+        self.eat_newline_until(TokenKind::RParen);
         self.eat(TokenKind::RParen);
         result
     }
@@ -199,6 +211,8 @@ impl<'a> Parser<'a> {
             match TokenKind::from(token) {
                 TokenKind::Plus => {
                     self.eat(TokenKind::Plus);
+                    self.eat_newline_indefinitely();
+
                     return vec![AST::BinaryExpression {
                         kind: ASTBinaryExpressionKind::Add,
                         left,
@@ -207,6 +221,7 @@ impl<'a> Parser<'a> {
                 }
                 TokenKind::Minus => {
                     self.eat(TokenKind::Minus);
+                    self.eat_newline_indefinitely();
                     return vec![AST::BinaryExpression {
                         kind: ASTBinaryExpressionKind::Sub,
                         left,
@@ -215,6 +230,7 @@ impl<'a> Parser<'a> {
                 }
                 TokenKind::Multiply => {
                     self.eat(TokenKind::Multiply);
+                    self.eat_newline_indefinitely();
                     return vec![AST::BinaryExpression {
                         kind: ASTBinaryExpressionKind::Mul,
                         left,
@@ -223,6 +239,7 @@ impl<'a> Parser<'a> {
                 }
                 TokenKind::Divide => {
                     self.eat(TokenKind::Divide);
+                    self.eat_newline_indefinitely();
                     return vec![AST::BinaryExpression {
                         kind: ASTBinaryExpressionKind::Div,
                         left,
@@ -261,8 +278,6 @@ impl<'a> Parser<'a> {
         while let Some(token) = &self.current_token {
             match TokenKind::from(token) {
                 tok if tok == kind => {
-                    self.previous_token = self.current_token.clone();
-                    self.current_token = self.lexer.get_next_token();
                     return;
                 }
                 TokenKind::NewLine => {
