@@ -1,0 +1,7 @@
+if 1 * 2 > 5 {
+    do_something()
+} else if 10 < 5 {
+    do_something_else_if()
+} else {
+    do_something_else()
+}

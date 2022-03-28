@@ -6,6 +6,8 @@ pub enum ASTBinaryExpressionKind {
     Sub,
     Mul,
     Div,
+    Lt,
+    Gt,
 }
 
 #[derive(Debug, EnumDiscriminants)]
@@ -54,6 +56,11 @@ pub enum AST {
     FunctionCall {
         callee: Box<AST>,
         args: Vec<AST>,
+    },
+    IfStatement {
+        test: Vec<AST>,
+        consequence: Vec<AST>,
+        alternative: Vec<AST>
     },
     Noop,
 }

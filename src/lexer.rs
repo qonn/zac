@@ -63,6 +63,8 @@ impl Lexer {
                     return Some(self.advance_with_token(Token::DblColon(String::from(""), span)))
                 }
                 ',' => return Some(self.advance_with_token(Token::Comma(String::from(""), span))),
+                '>' => return Some(self.advance_with_token(Token::Gt(String::from(""), span))),
+                '<' => return Some(self.advance_with_token(Token::Lt(String::from(""), span))),
                 '\n' => {
                     self.lines += 1;
                     return Some(self.advance_with_token(Token::NewLine(String::from(""), span)));

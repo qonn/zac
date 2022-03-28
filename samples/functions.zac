@@ -44,3 +44,11 @@ fn log(what: String) {
 }
 
 log(add(5, 10))
+
+fn if_statement() {
+    if a {
+        do()
+    } else {
+        do(c)
+    }
+}
