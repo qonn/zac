@@ -57,6 +57,9 @@ impl Lexer {
                     if self.char().unwrap_or(' ') == '/' {
                         self.skip_line();
                         continue;
+                    } else if self.char().unwrap_or(' ') == '*' {
+                        self.skip_comment_block();
+                        continue;
                     }
 
                     return Some(Token::Divide(String::from(""), span));
@@ -171,6 +174,22 @@ impl Lexer {
 
     pub fn skip_line(&mut self) -> &mut Self {
         while !self.char_is_newline_or_eof() {
+            self.advance();
+        }
+
+        self
+    }
+
+    pub fn skip_comment_block(&mut self) -> &mut Self {
+        while let Some(c) = self.char() {
+            if c.eq(&'*') {
+                self.advance();
+                if self.char().unwrap_or(' ') == '/' {
+                    self.advance();
+                    return self;
+                }
+            }
+
             self.advance();
         }
 

@@ -70,16 +70,142 @@ impl<'a> Parser<'a> {
             "let" => self.parse_variable_declaration(),
             "fn" => self.parse_function_definition(),
             "if" => self.parse_if_statement(),
+            "type" => self.parse_type_definition(),
+            "enum" => self.parse_enum_definition(),
+            "rec" => self.parse_record_definition(),
+            "___" => return vec![AST::BuiltinReservation],
             _ => {
-                let callee = AST::Identifier { value };
+                let callee = AST::Identifier {
+                    value,
+                    generics: vec![],
+                };
+
                 match self.current_token_kind() {
                     TokenKind::LParen => self.parse_function_call(Box::new(callee)),
+                    TokenKind::Lt => {
+                        let callee = match callee {
+                            AST::Identifier { value, generics: _ } => AST::Identifier {
+                                generics: self.parse_generics_definition(),
+                                value,
+                            },
+                            _ => callee,
+                        };
+
+                        vec![callee]
+                    }
                     _ => vec![callee],
                 }
             }
         };
 
         return result;
+    }
+
+    pub fn parse_type_definition(&mut self) -> Vec<AST> {
+        let name = self.current_token_value();
+
+        self.eat(TokenKind::Id);
+
+        // generic definition
+        let generics = self.parse_generics_definition();
+
+        self.eat(TokenKind::Eq);
+
+        let items = self.parse_expression();
+
+        return vec![AST::TypeDefinition {
+            name,
+            generics,
+            items,
+        }];
+    }
+
+    pub fn parse_enum_definition(&mut self) -> Vec<AST> {
+        let name = self.current_token_value();
+
+        self.eat(TokenKind::Id);
+
+        let generics = self.parse_generics_definition();
+
+        self.eat(TokenKind::LBrace);
+
+        let mut items = vec![];
+
+        while let Some(_) = &self.current_token {
+            match self.current_token_kind() {
+                TokenKind::RBrace => break,
+                TokenKind::NewLine => self.eat_newline_indefinitely(),
+                _ => {
+                    items.append(&mut self.parse_expression());
+                    self.eat_newline_indefinitely();
+                    if self.current_token_kind() != TokenKind::RBrace {
+                        self.eat(TokenKind::Comma);
+                    }
+                }
+            }
+        }
+
+        self.eat(TokenKind::RBrace);
+
+        vec![AST::EnumDefinition {
+            generics,
+            items,
+            name,
+        }]
+    }
+
+    pub fn parse_record_definition(&mut self) -> Vec<AST> {
+        let name = self.eat_and_spit_value(TokenKind::Id);
+
+        let mut keys = vec![];
+
+        self.eat(TokenKind::LBrace);
+
+        while let Some(_) = &self.current_token {
+            match self.current_token_kind() {
+                TokenKind::RBrace => break,
+                TokenKind::NewLine => self.eat_newline_indefinitely(),
+                _ => {
+                    let name = self.eat_and_spit_value(TokenKind::Id);
+                    self.eat(TokenKind::DblColon);
+                    let kind = self.parse_id();
+                    if self.current_token_kind() != TokenKind::RBrace {
+                        self.eat(TokenKind::Comma);
+                    }
+                    keys.append(&mut vec![AST::RecordKeyDefinition { name, kind }])
+                }
+            }
+        }
+
+        self.eat(TokenKind::RBrace);
+
+        vec![AST::RecordDefinition { name, keys }]
+    }
+
+    pub fn parse_generics_definition(&mut self) -> Vec<AST> {
+        let mut generics = vec![];
+
+        // generic definition
+        if self.current_token_kind() == TokenKind::Lt {
+            self.eat(TokenKind::Lt);
+
+            while let Some(_) = &self.current_token {
+                match self.current_token_kind() {
+                    TokenKind::Gt => break,
+                    TokenKind::NewLine => self.eat_newline_indefinitely(),
+                    _ => {
+                        generics.append(&mut self.parse_id());
+                        if self.current_token_kind() != TokenKind::Gt {
+                            self.eat(TokenKind::Comma);
+                        }
+                    }
+                }
+            }
+
+            self.eat(TokenKind::Gt);
+        }
+
+        generics
     }
 
     pub fn parse_function_call(&mut self, callee: Box<AST>) -> Vec<AST> {
@@ -350,6 +476,12 @@ impl<'a> Parser<'a> {
         }
 
         self.throw_unexpected_token(&kind)
+    }
+
+    pub fn eat_and_spit_value(&mut self, kind: TokenKind) -> String {
+        let value = self.current_token_value();
+        self.eat(kind);
+        value
     }
 
     pub fn eat_optional(&mut self, kind: TokenKind) {

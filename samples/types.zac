@@ -1,0 +1,4 @@
+type Boolean = ___
+type String = ___
+type Number = ___
+type Vec<a> = ___

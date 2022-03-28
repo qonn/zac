@@ -22,18 +22,30 @@ pub enum AST {
     StringLiteral {
         value: String,
     },
-    BlockStatement {
-        body: Vec<AST>,
-    },
     Identifier {
         value: String,
+        generics: Vec<AST>,
     },
     JsLiteral {
         value: String,
     },
     TypeDefinition {
         name: String,
-        value: Vec<AST>,
+        generics: Vec<AST>,
+        items: Vec<AST>,
+    },
+    EnumDefinition {
+        name: String,
+        generics: Vec<AST>,
+        items: Vec<AST>,
+    },
+    RecordDefinition {
+        name: String,
+        keys: Vec<AST>,
+    },
+    RecordKeyDefinition {
+        name: String,
+        kind: Vec<AST>,
     },
     VariableDeclaration {
         name: String,
@@ -65,5 +77,5 @@ pub enum AST {
         consequence: Vec<AST>,
         alternative: Vec<AST>,
     },
-    Noop,
+    BuiltinReservation,
 }
