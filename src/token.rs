@@ -40,6 +40,8 @@ pub enum Token {
     RParen(String, SourceSpan),
     LBrace(String, SourceSpan),
     RBrace(String, SourceSpan),
+    LSqrBr(SourceSpan),
+    RSqrBr(SourceSpan),
     Gt(String, SourceSpan),
     Lt(String, SourceSpan),
     DblColon(String, SourceSpan),

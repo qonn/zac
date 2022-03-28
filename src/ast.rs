@@ -35,9 +35,12 @@ pub enum AST {
         name: String,
         value: Vec<AST>,
     },
-    VariableDefinition {
+    VariableDeclaration {
         name: String,
         value: Vec<AST>,
+    },
+    ArrayDeclarator {
+        items: Vec<AST>,
     },
     FunctionDefinition {
         name: String,
@@ -60,7 +63,7 @@ pub enum AST {
     IfStatement {
         test: Vec<AST>,
         consequence: Vec<AST>,
-        alternative: Vec<AST>
+        alternative: Vec<AST>,
     },
     Noop,
 }

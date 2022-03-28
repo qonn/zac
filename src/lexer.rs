@@ -59,6 +59,8 @@ impl Lexer {
                 '}' => return Some(self.advance_with_token(Token::RBrace(String::from(""), span))),
                 '(' => return Some(self.advance_with_token(Token::LParen(String::from(""), span))),
                 ')' => return Some(self.advance_with_token(Token::RParen(String::from(""), span))),
+                '[' => return Some(self.advance_with_token(Token::LSqrBr(span))),
+                ']' => return Some(self.advance_with_token(Token::RSqrBr(span))),
                 ':' => {
                     return Some(self.advance_with_token(Token::DblColon(String::from(""), span)))
                 }

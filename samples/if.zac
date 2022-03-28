@@ -5,3 +5,9 @@ if 1 * 2 > 5 {
 } else {
     do_something_else()
 }
+
+let a = if 1 > 2 {
+    true
+} else {
+    false
+}

@@ -55,7 +55,7 @@ impl<'a> Parser<'a> {
                     let ast = self.parse_binary_expression(ast);
                     return ast;
                 }
-                _ => {}
+                _ => return self.parse_expression(),
             }
         }
 
@@ -67,7 +67,7 @@ impl<'a> Parser<'a> {
         self.eat(TokenKind::Id);
 
         let result = match value.as_str() {
-            "let" => self.parse_variable_definition(),
+            "let" => self.parse_variable_declaration(),
             "fn" => self.parse_function_definition(),
             "if" => self.parse_if_statement(),
             _ => {
@@ -105,7 +105,7 @@ impl<'a> Parser<'a> {
         ast
     }
 
-    pub fn parse_variable_definition(&mut self) -> Vec<AST> {
+    pub fn parse_variable_declaration(&mut self) -> Vec<AST> {
         self.expect_next(TokenKind::Id);
         let name = self.current_token_value();
         self.eat(TokenKind::Id);
@@ -113,7 +113,7 @@ impl<'a> Parser<'a> {
         self.eat(TokenKind::Eq);
         self.eat_newline_indefinitely();
         let value = self.parse_expression();
-        vec![AST::VariableDefinition { name, value }]
+        vec![AST::VariableDeclaration { name, value }]
     }
 
     pub fn parse_function_definition(&mut self) -> Vec<AST> {
@@ -133,6 +133,7 @@ impl<'a> Parser<'a> {
             }
             args.append(&mut self.parse_function_argument_definition());
         }
+
         self.eat(TokenKind::RParen);
 
         self.eat(TokenKind::LBrace);
@@ -203,6 +204,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Str => self.parse_string_literal(),
                 TokenKind::Numeric => self.parse_number_literal(),
                 TokenKind::LParen => self.parse_parenthesis_expression(),
+                TokenKind::LSqrBr => self.parse_array_declarator(),
                 _ => vec![],
             };
 
@@ -223,6 +225,36 @@ impl<'a> Parser<'a> {
         self.eat_newline_until(TokenKind::RParen);
         self.eat(TokenKind::RParen);
         result
+    }
+
+    pub fn parse_array_declarator(&mut self) -> Vec<AST> {
+        self.eat(TokenKind::LSqrBr);
+        self.eat_newline_indefinitely();
+        let mut items = vec![];
+
+        items.append(&mut self.parse_array_declarator_item());
+
+        while let Some(_) = &self.current_token {
+            if self.current_token_kind() == TokenKind::RSqrBr {
+                break;
+            }
+            items.append(&mut self.parse_array_declarator_item());
+        }
+
+        self.eat_newline_until(TokenKind::RSqrBr);
+        self.eat(TokenKind::RSqrBr);
+
+        vec![AST::ArrayDeclarator { items }]
+    }
+
+    pub fn parse_array_declarator_item(&mut self) -> Vec<AST> {
+        let ast = self.parse_expression();
+        self.eat_newline_indefinitely();
+        if self.current_token_kind() != TokenKind::RSqrBr {
+            self.eat(TokenKind::Comma);
+        }
+        self.eat_newline_indefinitely();
+        return ast;
     }
 
     pub fn parse_string_literal(&mut self) -> Vec<AST> {
@@ -420,6 +452,8 @@ impl<'a> Parser<'a> {
             Token::NewLine(v, _) => v,
             Token::Js(v, _) => v,
             Token::Unknown(v, _) => v,
+            Token::LSqrBr(_) => String::from("["),
+            Token::RSqrBr(_) => String::from("]"),
         }
     }
 
@@ -444,6 +478,8 @@ impl<'a> Parser<'a> {
             Token::NewLine(_, ss) => ss,
             Token::Js(_, ss) => ss,
             Token::Unknown(_, ss) => ss,
+            Token::LSqrBr(ss) => ss,
+            Token::RSqrBr(ss) => ss,
         }
     }
 }

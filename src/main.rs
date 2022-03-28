@@ -36,6 +36,10 @@ fn main() {
         let mut lexer = lexer::new(content);
         let mut parser = parser::parse(&mut lexer);
         let ast = parser.parse();
+
+        if d.path().to_string_lossy().contains("array") {
+            println!("{:#?}", ast);
+        }
     });
 
     println!("successfully parse everything!");
