@@ -51,7 +51,16 @@ impl Lexer {
                 '=' => return Some(self.advance_with_token(Token::Eq(String::from(""), span))),
                 '+' => return Some(self.advance_with_token(Token::Plus(String::from(""), span))),
                 '-' => return Some(self.advance_with_token(Token::Minus(String::from(""), span))),
-                '/' => return Some(self.advance_with_token(Token::Divide(String::from(""), span))),
+                '/' => {
+                    self.advance();
+
+                    if self.char().unwrap_or(' ') == '/' {
+                        self.skip_line();
+                        continue;
+                    }
+
+                    return Some(Token::Divide(String::from(""), span));
+                }
                 '*' => {
                     return Some(self.advance_with_token(Token::Multiply(String::from(""), span)))
                 }
@@ -98,6 +107,7 @@ impl Lexer {
     pub fn span(&mut self) -> SourceSpan {
         SourceSpan::new(self.lines, self.pos, self.pos + 1)
     }
+
     pub fn advance_with_token(&mut self, token: Token) -> Token {
         self.advance();
         token
@@ -143,8 +153,24 @@ impl Lexer {
         }
     }
 
+    pub fn char_is_newline_or_eof(&mut self) -> bool {
+        if let Some(c) = self.char() {
+            c.eq(&'\n')
+        } else {
+            true
+        }
+    }
+
     pub fn skip_whitespace(&mut self) -> &mut Self {
         while self.char_is_whitespace() {
+            self.advance();
+        }
+
+        self
+    }
+
+    pub fn skip_line(&mut self) -> &mut Self {
+        while !self.char_is_newline_or_eof() {
             self.advance();
         }
 
