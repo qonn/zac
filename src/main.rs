@@ -37,7 +37,7 @@ fn main() {
         let mut parser = parser::parse(&mut lexer);
         let ast = parser.parse();
 
-        if d.path().to_string_lossy().contains("records") {
+        if d.path().to_string_lossy().contains("comments") {
             println!("{:#?}", ast);
         }
     });
