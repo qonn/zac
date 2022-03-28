@@ -39,7 +39,7 @@ impl ErrorMessage {
             .map(|(i, x)| {
                 format!(
                     "{:>5} | {}",
-                    if i == 2 {
+                    if i == (if self.line > 2 { 2 } else { self.line }) {
                         current_line_number_as_string.clone()
                     } else {
                         "".to_string()
