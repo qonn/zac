@@ -1,3 +1,6 @@
+fn a(b: String) {
+}
+
 fn no_arg() {
 }
 
@@ -21,7 +24,11 @@ fn variable_shadowing() {
 }
 
 fn function_calling() {
+    let b = "1"
     a(b)
+}
+
+fn foo(i: Number) {
 }
 
 fn function_calling_multiline() {

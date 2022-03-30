@@ -13,5 +13,5 @@ enum UserRole {
 rec User {
     email: String,
     password: String,
-    roles: Vec<NormalUser>,
+    roles: Vec<UserRole>,
 }

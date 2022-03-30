@@ -8,6 +8,14 @@
 
 [ 6, 7, 8, 9, 10 ]
 
+fn a(a: Number) {
+
+}
+
+fn b(a: Number) {
+
+}
+
 fn array_in_function() {
     let items = [ 11, 12, 13, 14, 15 ]
 

@@ -14,7 +14,7 @@ let f =
 
 let g = [1, 2, 3, 4, 5]
 let h = ["1", "2", "3", "4", "5"]
-let i = [t, h, i, s,]
+let i = [a, b, c, d]
 
 let j = [
     a,

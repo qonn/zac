@@ -1,0 +1,18 @@
+enum UserRole {
+    Admin,
+    NormalUser
+}
+
+rec User {
+    username: String,
+    password: String,
+    age: Number,
+    role: UserRole
+}
+
+let user_role =
+    UserRole.Admin
+
+fn fetch(url: String) {
+    `fetch(#{url})`
+}

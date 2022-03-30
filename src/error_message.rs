@@ -31,6 +31,7 @@ impl ErrorMessage {
         let nearest_newline_right_pos = self.find_nearest_newline_right(3);
         let start_pos = self.find_nearest_newline_left(3);
         let current_line_number_as_string = (self.line + 1).to_string();
+        let current_line_column = self.pos - nearest_newline_left_pos + 1;
         let mut partial_content = content[start_pos.to..nearest_newline_right_pos.to]
             .to_string()
             .split("\n")
@@ -67,6 +68,11 @@ impl ErrorMessage {
         let partial_content = partial_content.join("\n");
 
         println!("");
+        println!(
+            "{}:{}:{}",
+            self.filepath, current_line_number_as_string, current_line_column
+        );
+        println!("");
         println!("{}", partial_content);
         println!("      | ");
         println!("");
@@ -97,7 +103,7 @@ impl ErrorMessage {
         let target_pos = self.pos;
         let mut found_counter = 0;
         let mut line = self.line;
-        let mut result = SourceSpan::new(0, 0, 0);
+        let mut result = SourceSpan::new(0, 0);
 
         while let Some((curr_pos, c)) = rev_content.next() {
             let curr_pos = (self.len - 1) - curr_pos;
@@ -112,7 +118,7 @@ impl ErrorMessage {
 
             if c == '\n' {
                 found_counter += 1;
-                result = SourceSpan::new(line, curr_pos, curr_pos + 1);
+                result = SourceSpan::new(curr_pos, curr_pos + 1);
                 if line > 0 {
                     line -= 1;
                 }
@@ -120,7 +126,7 @@ impl ErrorMessage {
         }
 
         if found_counter < count {
-            return SourceSpan::new(0, 0, 0);
+            return SourceSpan::new(0, 0);
         }
 
         result
@@ -130,9 +136,8 @@ impl ErrorMessage {
         let mut rev_content = self.content.chars().enumerate();
         let target_pos = self.pos;
         let mut found_counter = 0;
-        let mut line = self.line;
         let len = self.len;
-        let mut result = SourceSpan::new(line, len - 1, len);
+        let mut result = SourceSpan::new(len - 1, len);
 
         while let Some((curr_pos, c)) = rev_content.next() {
             if curr_pos < target_pos {
@@ -149,13 +154,12 @@ impl ErrorMessage {
 
             if c == '\n' {
                 found_counter += 1;
-                line += 1;
-                result = SourceSpan::new(line, curr_pos, curr_pos + 1);
+                result = SourceSpan::new(curr_pos, curr_pos + 1);
             }
         }
 
         if found_counter < count {
-            return SourceSpan::new(line, len - 1, len);
+            return SourceSpan::new(len - 1, len);
         }
 
         result

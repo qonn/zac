@@ -4,12 +4,13 @@ use std::{
     path::Path,
 };
 
-mod ast;
-mod error_message;
-mod lexer;
-mod parser;
-mod scope;
-mod token;
+pub mod ast;
+pub mod checker;
+pub mod error_message;
+pub mod lexer;
+pub mod parser;
+pub mod scope;
+pub mod token;
 
 fn visit_dirs(dir: &Path, cb: &dyn Fn(&DirEntry)) -> io::Result<()> {
     if dir.is_dir() {
@@ -31,15 +32,16 @@ fn main() {
     println!("parsing...");
 
     let _ = visit_dirs(Path::new("./samples"), &|d| {
-        println!("parsing {}", d.path().to_string_lossy());
+        let filepath = d.path().to_string_lossy().to_string();
+        println!("parsing {}", filepath);
         let content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
-        let mut lexer = lexer::new(content);
+        let mut lexer = lexer::new(&content);
         let mut parser = parser::parse(&mut lexer);
         let ast = parser.parse();
-
-        if d.path().to_string_lossy().contains("comments") {
-            println!("{:#?}", ast);
-        }
+        // if filepath.contains("type_checking") {
+        //     println!("{:#?}", ast);
+        // }
+        checker::check(&filepath, &content, ast);
     });
 
     println!("successfully parse everything!");

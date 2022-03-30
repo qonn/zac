@@ -67,6 +67,8 @@ impl Lexer {
                 '*' => {
                     return Some(self.advance_with_token(Token::Multiply(String::from(""), span)))
                 }
+
+                '.' => return Some(self.advance_with_token(Token::Dot(span))),
                 '{' => return Some(self.advance_with_token(Token::LBrace(String::from(""), span))),
                 '}' => return Some(self.advance_with_token(Token::RBrace(String::from(""), span))),
                 '(' => return Some(self.advance_with_token(Token::LParen(String::from(""), span))),
@@ -108,7 +110,7 @@ impl Lexer {
     }
 
     pub fn span(&mut self) -> SourceSpan {
-        SourceSpan::new(self.lines, self.pos, self.pos + 1)
+        SourceSpan::new(self.pos, self.pos + 1)
     }
 
     pub fn advance_with_token(&mut self, token: Token) -> Token {
@@ -143,6 +145,14 @@ impl Lexer {
     pub fn char_is_word(&self) -> bool {
         if let Some(c) = self.char() {
             (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+        } else {
+            false
+        }
+    }
+
+    pub fn char_is_word_and_numeric(&self) -> bool {
+        if let Some(c) = self.char() {
+            (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'
         } else {
             false
         }
@@ -199,7 +209,7 @@ impl Lexer {
     fn collect_id(&mut self) -> Token {
         let start_pos = self.pos;
 
-        while self.char_is_word() {
+        while self.char_is_word_and_numeric() {
             self.advance();
         }
 
@@ -207,7 +217,7 @@ impl Lexer {
 
         Token::Id(
             self.content[start_pos..end_pos].to_string(),
-            SourceSpan::new(self.lines, start_pos, end_pos),
+            SourceSpan::new(start_pos, end_pos),
         )
     }
 
@@ -226,10 +236,7 @@ impl Lexer {
 
         self.advance();
 
-        Token::Str(
-            collected_string,
-            SourceSpan::new(self.lines, start_pos, end_pos),
-        )
+        Token::Str(collected_string, SourceSpan::new(start_pos, end_pos))
     }
 
     fn collect_js(&mut self) -> Token {
@@ -247,10 +254,7 @@ impl Lexer {
 
         self.advance();
 
-        Token::Js(
-            collected_string,
-            SourceSpan::new(self.lines, start_pos, end_pos),
-        )
+        Token::Js(collected_string, SourceSpan::new(start_pos, end_pos))
     }
 
     fn collect_numeric(&mut self) -> Token {
@@ -264,13 +268,10 @@ impl Lexer {
 
         let collected_string = self.content[start_pos..end_pos].to_string();
 
-        Token::Numeric(
-            collected_string,
-            SourceSpan::new(self.lines, start_pos, end_pos),
-        )
+        Token::Numeric(collected_string, SourceSpan::new(start_pos, end_pos))
     }
 }
 
-pub(crate) fn new(content: String) -> Lexer {
-    Lexer::new(content)
+pub(crate) fn new(content: &String) -> Lexer {
+    Lexer::new(content.clone())
 }
