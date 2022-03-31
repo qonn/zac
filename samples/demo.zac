@@ -1,0 +1,23 @@
+/* builtin types */
+type String
+type Boolean
+type Number
+type Vec<a>
+type Fn<a>
+type HtmlElement
+type JSX
+
+fn render(node: Fn<HtmlElement>, target: HtmlElement) {
+    `render(#{node})`
+}
+
+fn HelloWorld() {
+    <div>Hello World!</div>
+}
+
+/*
+render(
+    () => <HelloWorld />,
+    document.getElementById("app")
+)
+*/

@@ -48,9 +48,9 @@ impl Lexer {
                 _ if self.char_is_numeric(false) => {
                     return Some(self.collect_numeric());
                 }
-                '=' => return Some(self.advance_with_token(Token::Eq(String::from(""), span))),
-                '+' => return Some(self.advance_with_token(Token::Plus(String::from(""), span))),
-                '-' => return Some(self.advance_with_token(Token::Minus(String::from(""), span))),
+                '=' => return Some(self.advance_with_token(Token::Eq(span))),
+                '+' => return Some(self.advance_with_token(Token::Plus(span))),
+                '-' => return Some(self.advance_with_token(Token::Minus(span))),
                 '/' => {
                     self.advance();
 
@@ -62,28 +62,24 @@ impl Lexer {
                         continue;
                     }
 
-                    return Some(Token::Divide(String::from(""), span));
+                    return Some(Token::Divide(span));
                 }
-                '*' => {
-                    return Some(self.advance_with_token(Token::Multiply(String::from(""), span)))
-                }
+                '*' => return Some(self.advance_with_token(Token::Multiply(span))),
 
                 '.' => return Some(self.advance_with_token(Token::Dot(span))),
-                '{' => return Some(self.advance_with_token(Token::LBrace(String::from(""), span))),
-                '}' => return Some(self.advance_with_token(Token::RBrace(String::from(""), span))),
-                '(' => return Some(self.advance_with_token(Token::LParen(String::from(""), span))),
-                ')' => return Some(self.advance_with_token(Token::RParen(String::from(""), span))),
+                '{' => return Some(self.advance_with_token(Token::LBrace(span))),
+                '}' => return Some(self.advance_with_token(Token::RBrace(span))),
+                '(' => return Some(self.advance_with_token(Token::LParen(span))),
+                ')' => return Some(self.advance_with_token(Token::RParen(span))),
                 '[' => return Some(self.advance_with_token(Token::LSqrBr(span))),
                 ']' => return Some(self.advance_with_token(Token::RSqrBr(span))),
-                ':' => {
-                    return Some(self.advance_with_token(Token::DblColon(String::from(""), span)))
-                }
-                ',' => return Some(self.advance_with_token(Token::Comma(String::from(""), span))),
-                '>' => return Some(self.advance_with_token(Token::Gt(String::from(""), span))),
-                '<' => return Some(self.advance_with_token(Token::Lt(String::from(""), span))),
+                ':' => return Some(self.advance_with_token(Token::DblColon(span))),
+                ',' => return Some(self.advance_with_token(Token::Comma(span))),
+                '>' => return Some(self.advance_with_token(Token::Gt(span))),
+                '<' => return Some(self.advance_with_token(Token::Lt(span))),
                 '\n' => {
                     self.lines += 1;
-                    return Some(self.advance_with_token(Token::NewLine(String::from(""), span)));
+                    return Some(self.advance_with_token(Token::NewLine(span)));
                 }
                 ' ' | '\t' | '\r' => {
                     self.skip_whitespace();

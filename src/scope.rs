@@ -104,43 +104,8 @@ impl Scope {
 }
 
 pub fn new() -> Scope {
-    let mut type_definitions: HashMap<String, _> = HashMap::new();
-
-    type_definitions.insert(
-        "Unit".into(),
-        AST::BuiltinReservation {
-            span: SourceSpan::new(0, 0),
-        },
-    );
-
-    type_definitions.insert(
-        "Boolean".into(),
-        AST::BuiltinReservation {
-            span: SourceSpan::new(0, 0),
-        },
-    );
-
-    type_definitions.insert(
-        "String".into(),
-        AST::BuiltinReservation {
-            span: SourceSpan::new(0, 0),
-        },
-    );
-    type_definitions.insert(
-        "Number".into(),
-        AST::BuiltinReservation {
-            span: SourceSpan::new(0, 0),
-        },
-    );
-    type_definitions.insert(
-        "Vec".into(),
-        AST::BuiltinReservation {
-            span: SourceSpan::new(0, 0),
-        },
-    );
-
     Scope {
-        type_definitions,
+        type_definitions: HashMap::new(),
         function_definitions: HashMap::new(),
         variable_definitions: HashMap::new(),
         enum_definitions: HashMap::new(),

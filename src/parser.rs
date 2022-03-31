@@ -74,10 +74,6 @@ impl<'a> Parser<'a> {
             "type" => self.parse_type_definition(),
             "enum" => self.parse_enum_definition(),
             "rec" => self.parse_record_definition(),
-            "___" => {
-                self.eat(TokenKind::Id);
-                return vec![AST::BuiltinReservation { span }];
-            }
             _ => {
                 self.eat(TokenKind::Id);
 
@@ -140,9 +136,12 @@ impl<'a> Parser<'a> {
         // generic definition
         let generics = self.parse_generics_definition();
 
-        self.eat(TokenKind::Eq);
-
-        let items = self.parse_expression();
+        let items = if self.current_token_kind() == TokenKind::Eq {
+            self.eat(TokenKind::Eq);
+            self.parse_expression()
+        } else {
+            vec![]
+        };
 
         let span_to = self.previous_token_source_span().to;
 
@@ -372,7 +371,7 @@ impl<'a> Parser<'a> {
 
         body.append(&mut self.parse_statement());
 
-        while let Some(Token::NewLine(_, _)) = &self.current_token {
+        while let Some(Token::NewLine(_)) = &self.current_token {
             self.eat(TokenKind::NewLine);
             body.append(&mut self.parse_statement());
         }
@@ -435,7 +434,7 @@ impl<'a> Parser<'a> {
         self.eat_newline_indefinitely();
         let mut consequence = vec![];
         consequence.append(&mut self.parse_statement());
-        while let Some(Token::NewLine(_, _)) = &self.current_token {
+        while let Some(Token::NewLine(_)) = &self.current_token {
             self.eat(TokenKind::NewLine);
             consequence.append(&mut self.parse_statement());
         }
@@ -760,20 +759,20 @@ impl<'a> Parser<'a> {
             Token::Id(v, _) => v,
             Token::Str(v, _) => v,
             Token::Numeric(v, _) => v,
-            Token::Plus(v, _) => v,
-            Token::Minus(v, _) => v,
-            Token::Divide(v, _) => v,
-            Token::Multiply(v, _) => v,
-            Token::Eq(v, _) => v,
-            Token::LParen(v, _) => v,
-            Token::RParen(v, _) => v,
-            Token::LBrace(v, _) => v,
-            Token::RBrace(v, _) => v,
-            Token::Gt(v, _) => v,
-            Token::Lt(v, _) => v,
-            Token::DblColon(v, _) => v,
-            Token::Comma(v, _) => v,
-            Token::NewLine(v, _) => v,
+            Token::Plus(_) => String::from("+"),
+            Token::Minus(_) => String::from("-"),
+            Token::Divide(_) => String::from("/"),
+            Token::Multiply(_) => String::from("*"),
+            Token::Eq(_) => String::from("="),
+            Token::LParen(_) => String::from("("),
+            Token::RParen(_) => String::from(")"),
+            Token::LBrace(_) => String::from("{"),
+            Token::RBrace(_) => String::from("}"),
+            Token::Gt(_) => String::from(">"),
+            Token::Lt(_) => String::from("<"),
+            Token::DblColon(_) => String::from(":"),
+            Token::Comma(_) => String::from(","),
+            Token::NewLine(_) => String::from("\n"),
             Token::Js(v, _) => v,
             Token::Eof(_) => String::from(""),
             Token::LSqrBr(_) => String::from("["),
@@ -787,21 +786,21 @@ impl<'a> Parser<'a> {
             Token::Id(_, ss) => ss,
             Token::Str(_, ss) => ss,
             Token::Numeric(_, ss) => ss,
-            Token::Plus(_, ss) => ss,
-            Token::Minus(_, ss) => ss,
-            Token::Divide(_, ss) => ss,
-            Token::Multiply(_, ss) => ss,
-            Token::Eq(_, ss) => ss,
-            Token::LParen(_, ss) => ss,
-            Token::RParen(_, ss) => ss,
-            Token::LBrace(_, ss) => ss,
-            Token::RBrace(_, ss) => ss,
-            Token::Gt(_, ss) => ss,
-            Token::Lt(_, ss) => ss,
-            Token::DblColon(_, ss) => ss,
-            Token::Comma(_, ss) => ss,
-            Token::NewLine(_, ss) => ss,
             Token::Js(_, ss) => ss,
+            Token::Plus(ss) => ss,
+            Token::Minus(ss) => ss,
+            Token::Divide(ss) => ss,
+            Token::Multiply(ss) => ss,
+            Token::Eq(ss) => ss,
+            Token::LParen(ss) => ss,
+            Token::RParen(ss) => ss,
+            Token::LBrace(ss) => ss,
+            Token::RBrace(ss) => ss,
+            Token::Gt(ss) => ss,
+            Token::Lt(ss) => ss,
+            Token::DblColon(ss) => ss,
+            Token::Comma(ss) => ss,
+            Token::NewLine(ss) => ss,
             Token::Eof(ss) => ss,
             Token::LSqrBr(ss) => ss,
             Token::RSqrBr(ss) => ss,
@@ -814,21 +813,21 @@ impl<'a> Parser<'a> {
             Token::Id(_, ss) => ss,
             Token::Str(_, ss) => ss,
             Token::Numeric(_, ss) => ss,
-            Token::Plus(_, ss) => ss,
-            Token::Minus(_, ss) => ss,
-            Token::Divide(_, ss) => ss,
-            Token::Multiply(_, ss) => ss,
-            Token::Eq(_, ss) => ss,
-            Token::LParen(_, ss) => ss,
-            Token::RParen(_, ss) => ss,
-            Token::LBrace(_, ss) => ss,
-            Token::RBrace(_, ss) => ss,
-            Token::Gt(_, ss) => ss,
-            Token::Lt(_, ss) => ss,
-            Token::DblColon(_, ss) => ss,
-            Token::Comma(_, ss) => ss,
-            Token::NewLine(_, ss) => ss,
             Token::Js(_, ss) => ss,
+            Token::Plus(ss) => ss,
+            Token::Minus(ss) => ss,
+            Token::Divide(ss) => ss,
+            Token::Multiply(ss) => ss,
+            Token::Eq(ss) => ss,
+            Token::LParen(ss) => ss,
+            Token::RParen(ss) => ss,
+            Token::LBrace(ss) => ss,
+            Token::RBrace(ss) => ss,
+            Token::Gt(ss) => ss,
+            Token::Lt(ss) => ss,
+            Token::DblColon(ss) => ss,
+            Token::Comma(ss) => ss,
+            Token::NewLine(ss) => ss,
             Token::Eof(ss) => ss,
             Token::LSqrBr(ss) => ss,
             Token::RSqrBr(ss) => ss,

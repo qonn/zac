@@ -38,9 +38,9 @@ fn main() {
         let mut lexer = lexer::new(&content);
         let mut parser = parser::parse(&mut lexer);
         let ast = parser.parse();
-        // if filepath.contains("type_checking") {
-        //     println!("{:#?}", ast);
-        // }
+        if filepath.contains("demo") {
+            println!("{:#?}", ast);
+        }
         checker::check(&filepath, &content, ast);
     });
 
