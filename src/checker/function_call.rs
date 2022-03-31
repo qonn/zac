@@ -114,7 +114,7 @@ fn check_arg_type(
         },
     ) = (callee, callee_arg)
     {
-        if resolved_callee_arg != resolved_caller_arg {
+        if resolved_callee_arg != resolved_caller_arg && resolved_caller_arg != "JS" {
             let message = format!(
                 "The function '{}', argument '{}' was expecting '{}' but received a '{}'.",
                 callee_name, callee_arg_name, resolved_callee_arg, resolved_caller_arg
