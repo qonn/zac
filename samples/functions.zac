@@ -4,7 +4,7 @@ fn a(b: String) {
 fn no_arg() {
 }
 
-fn single_argument(a: String) {
+fn single_argument(a: Number) {
 }
 
 fn multi_arguments(a: String, b: String) {
@@ -14,7 +14,7 @@ fn js_literal() {
     `#{what}`
 }
 
-fn with_let() {
+fn variable() {
     let a = "hello world"
 }
 
@@ -28,11 +28,8 @@ fn function_calling() {
     a(b)
 }
 
-fn foo(i: Number) {
-}
-
 fn function_calling_multiline() {
-    foo(
+    single_argument(
         (1 / 2) +
         bar(
             a,
@@ -46,16 +43,25 @@ fn add(a: Number, b: Number) {
     a + b
 }
 
+fn number_to_string(what: Number) {
+    `'#{what}'`
+}
+
 fn log(what: String) {
     `console.log(#{what})`
 }
 
-log(add(5, 10))
+log(number_to_string(add(5, 10)))
+
+fn do() {}
+fn do2(what: Number) {}
 
 fn if_statement() {
+    let c = 123
+
     if a {
         do()
     } else {
-        do(c)
+        do2(c)
     }
 }

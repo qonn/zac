@@ -5,8 +5,9 @@ use crate::{
 };
 
 use super::{
-    checker_context::CheckerContext, enum_definition, function_call, function_definition,
-    record_definition, type_definition, variable_declaration,
+    array_declarator, checker_context::CheckerContext, enum_definition, function_call,
+    function_definition, member_expression, record_definition, type_definition,
+    variable_declaration,
 };
 
 pub fn check(context: &mut CheckerContext, ast: Vec<AST>) {
@@ -82,7 +83,9 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 variable_declaration::check(context, scope, body);
                 scope.add_variable_definition(&name, body);
             }
-            AST::ArrayDeclarator { items: _, span: _ } => {}
+            AST::ArrayDeclarator { items: _, span: _ } => {
+                array_declarator::check(context, scope, body);
+            }
             AST::FunctionDefinition {
                 name: _,
                 args: _,
@@ -120,7 +123,7 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 object,
                 property,
                 span,
-            } => {}
+            } => member_expression::check(context, scope, body),
         }
     }
 }

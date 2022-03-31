@@ -4,14 +4,14 @@ use crate::{
 };
 
 use super::{
-    binary_expression, checker_context::CheckerContext, function_call, function_definition,
-    identifier, literal,
+    binary_expression, checker_context::CheckerContext, function_call, identifier, literal,
+    type_resolver,
 };
 
 pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {
     match ast {
         AST::ArrayDeclarator { items, span: _ } => {
-            check_items(context, scope, items);
+            check_items(context, scope, ast, items);
         }
         _ => {
             let message = format!("Invalid AST Node '{:?}'", crate::ast::ASTKind::from(ast));
@@ -21,11 +21,29 @@ pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {
     }
 }
 
-pub fn check_items(context: &CheckerContext, scope: &mut Scope, items: &Vec<AST>) {
-    let mut items = items.iter();
+pub fn check_items(
+    context: &CheckerContext,
+    scope: &mut Scope,
+    array_declarator: &AST,
+    array_declarator_items: &Vec<AST>,
+) {
+    let mut items = array_declarator_items.iter();
+    let mut last_item_type = "".to_string();
 
-    while let Some(item) = items.next() {
-        check_item(context, scope, item);
+    while let Some(array_declarator_item) = items.next() {
+        check_item(context, scope, array_declarator_item);
+        let resolved_item_type =
+            resolve_item_type(context, scope, array_declarator, array_declarator_item);
+        if last_item_type != "" && resolved_item_type != last_item_type {
+            let message = format!(
+                "Invalid array item's type, was expecting '{}' but this item type is '{}'",
+                last_item_type, resolved_item_type
+            );
+            let pos = array_declarator_item.source_span().from;
+            context.print_error_message(message, pos);
+        } else {
+            last_item_type = resolved_item_type;
+        }
     }
 }
 
@@ -40,10 +58,18 @@ pub fn check_item(context: &CheckerContext, scope: &mut Scope, item: &AST) {
         ASTKind::FunctionCall => function_call::check(context, scope, item),
         ASTKind::BinaryExpression => binary_expression::check(context, scope, item),
         _ => {
-            println!("{:?}", item);
             let message = format!("Unsupported array declaration syntax.");
             let pos = item.source_span().from;
             context.print_error_message(message, pos);
         }
     }
+}
+
+pub fn resolve_item_type(
+    context: &CheckerContext,
+    scope: &mut Scope,
+    array_declarator: &AST,
+    array_declarator_item: &AST,
+) -> String {
+    type_resolver::resolve(context, scope, array_declarator, array_declarator_item)
 }

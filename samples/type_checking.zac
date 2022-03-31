@@ -16,3 +16,6 @@ let user_role =
 fn fetch(url: String) {
     `fetch(#{url})`
 }
+
+fetch("http://example.com").await
+fetch(12345).await

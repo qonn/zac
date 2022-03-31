@@ -13,6 +13,7 @@ mod literal;
 mod if_statement;
 mod binary_expression;
 mod type_resolver;
+mod member_expression;
 
 use crate::ast::AST;
 
