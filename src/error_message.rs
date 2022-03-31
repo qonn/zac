@@ -31,7 +31,13 @@ impl ErrorMessage {
         let nearest_newline_right_pos = self.find_nearest_newline_right(3);
         let start_pos = self.find_nearest_newline_left(3);
         let current_line_number_as_string = (self.line + 1).to_string();
-        let current_line_column = self.pos - nearest_newline_left_pos + 1;
+
+        let current_line_column = if self.pos > nearest_newline_left_pos {
+            self.pos - nearest_newline_left_pos + 1
+        } else {
+            self.pos
+        };
+
         let mut partial_content = content[start_pos.to..nearest_newline_right_pos.to]
             .to_string()
             .split("\n")
