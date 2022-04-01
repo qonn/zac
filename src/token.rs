@@ -23,6 +23,7 @@ pub enum Token {
     Str(String, SourceSpan),
     Numeric(String, SourceSpan),
     Js(String, SourceSpan),
+    JsxOpen(String, SourceSpan),
     Plus(SourceSpan),
     Minus(SourceSpan),
     Divide(SourceSpan),

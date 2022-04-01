@@ -2,6 +2,39 @@ use crate::{
     error_message::ErrorMessage,
     token::{SourceSpan, Token},
 };
+use lazy_static::lazy_static;
+use regex::Regex;
+
+lazy_static! {
+    static ref COMMENT_LINE: Regex = Regex::new(r"^(//.+)").unwrap();
+    static ref COMMENT_BLOCK: Regex = Regex::new(r"^(/\*(?s)(.*?)\*/)").unwrap();
+    static ref STRING_LITERAL: Regex = Regex::new(r#"^"(?s)(.*?)""#).unwrap();
+    static ref NUMBER_LITERAL: Regex = Regex::new(r#"^([0-9\.])+"#).unwrap();
+    static ref JS_LITERAL: Regex = Regex::new(r"^`(?s)(.*?)`").unwrap();
+    static ref JSX_A: Regex =
+        Regex::new(r"^<([A-Za-z0-9]+)(?s:.*?)>(?s:.+?)</([A-Za-z0-9]+)>").unwrap();
+    static ref JSX_CLOSE: Regex = Regex::new(r"^</([a-zA-Z0-9]+)").unwrap();
+    static ref IDENTIFIER: Regex = Regex::new(r"^[a-zA-Z0-9_]+").unwrap();
+    static ref WHITESPACE: Regex = Regex::new(r"^[ \r\t]+").unwrap();
+    static ref COLON: Regex = Regex::new(r"^:").unwrap();
+    static ref COMMA: Regex = Regex::new(r"^,").unwrap();
+    static ref LT: Regex = Regex::new(r"^<").unwrap();
+    static ref GT: Regex = Regex::new(r"^>").unwrap();
+    static ref LPAREN: Regex = Regex::new(r"^\(").unwrap();
+    static ref RPAREN: Regex = Regex::new(r"^\)").unwrap();
+    static ref LBRACE: Regex = Regex::new(r"^\{").unwrap();
+    static ref RBRACE: Regex = Regex::new(r"^\}").unwrap();
+    static ref LBRCKT: Regex = Regex::new(r"^\[").unwrap();
+    static ref RBRCKT: Regex = Regex::new(r"^\]").unwrap();
+    static ref ADD: Regex = Regex::new(r"^+").unwrap();
+    static ref SUB: Regex = Regex::new(r"^-").unwrap();
+    static ref DIV: Regex = Regex::new(r"^/").unwrap();
+    static ref MUL: Regex = Regex::new(r"^/").unwrap();
+    static ref NE: Regex = Regex::new(r"^!=").unwrap();
+    static ref EQ: Regex = Regex::new(r"^==").unwrap();
+    static ref ASSIGNMENT: Regex = Regex::new(r"^=").unwrap();
+    static ref NEWLINE: Regex = Regex::new(r"^[\n]+").unwrap();
+}
 
 #[derive(Debug, Clone)]
 pub struct Lexer {
@@ -23,72 +56,127 @@ impl Lexer {
         }
     }
 
-    pub fn char(&self) -> Option<char> {
-        if self.pos == self.len {
-            return None;
-        }
-
-        self.content[self.pos..self.pos + 1].chars().nth(0)
+    pub fn get_next_token(&mut self) -> Option<Token> {
+        let result = self.get_next_token_ex();
+        println!("{:?}", result);
+        return result;
     }
 
-    pub fn get_next_token(&mut self) -> Option<Token> {
-        while let Some(c) = self.char() {
-            let span = self.span();
+    pub fn get_next_token_ex(&mut self) -> Option<Token> {
+        loop {
+            if self.pos == self.len {
+                return None;
+            }
 
-            match c {
-                _ if self.char_is_word() => {
-                    return Some(self.collect_id());
-                }
-                _ if self.char_is_quote() => {
-                    return Some(self.collect_string());
-                }
-                _ if self.char_is_tilde() => {
-                    return Some(self.collect_js());
-                }
-                _ if self.char_is_numeric(false) => {
-                    return Some(self.collect_numeric());
-                }
-                '=' => return Some(self.advance_with_token(Token::Eq(span))),
-                '+' => return Some(self.advance_with_token(Token::Plus(span))),
-                '-' => return Some(self.advance_with_token(Token::Minus(span))),
-                '/' => {
-                    self.advance();
+            let slice = &self.content.clone()[self.pos..];
 
-                    if self.char().unwrap_or(' ') == '/' {
-                        self.skip_line();
-                        continue;
-                    } else if self.char().unwrap_or(' ') == '*' {
-                        self.skip_comment_block();
-                        continue;
+            match slice {
+                _ if COMMENT_LINE.is_match(slice) => {
+                    let cap = &COMMENT_LINE.captures(slice).unwrap()[1];
+                    self.advance(cap.len());
+                }
+                _ if COMMENT_BLOCK.is_match(slice) => {
+                    let cap = &COMMENT_BLOCK.captures(slice).unwrap()[1];
+                    println!("{}", cap);
+                    self.advance(cap.len());
+                }
+                _ if WHITESPACE.is_match(slice) => {
+                    let cap = &WHITESPACE.captures(slice).unwrap()[0];
+                    self.advance(cap.len());
+                }
+                _ if JS_LITERAL.is_match(slice) => {
+                    let caps = JS_LITERAL.captures(slice).unwrap();
+                    let cap_overall = &caps[0];
+                    let cap_inner = &caps[1];
+                    let token = Token::Js(cap_inner.to_string(), self.span(cap_overall.len()));
+                    return Some(self.advance_with_token(cap_overall.len(), token));
+                }
+                _ if IDENTIFIER.is_match(slice) => {
+                    let cap = &IDENTIFIER.captures(slice).unwrap()[0];
+                    let token = Token::Id(cap.to_string(), self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if NEWLINE.is_match(slice) => {
+                    let cap = &NEWLINE.captures(slice).unwrap()[0];
+                    let token = Token::NewLine(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if COLON.is_match(slice) => {
+                    let cap = &COLON.captures(slice).unwrap()[0];
+                    let token = Token::DblColon(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if COMMA.is_match(slice) => {
+                    let cap = &COMMA.captures(slice).unwrap()[0];
+                    let token = Token::Comma(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if GT.is_match(slice) => {
+                    let cap = &GT.captures(slice).unwrap()[0];
+                    let token = Token::Gt(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if LT.is_match(slice) => {
+                    if JSX_A.is_match(slice) {
+                        let caps = JSX_A.captures(slice).unwrap();
+                        if &caps[1] == &caps[2] {
+                            let token =
+                                Token::JsxOpen(caps[1].to_string(), self.span(caps[1].len()));
+                            return Some(self.advance_with_token(caps[1].len() + 1, token));
+                        }
                     }
 
-                    return Some(Token::Divide(span));
+                    let cap = &LT.captures(slice).unwrap()[0];
+                    let token = Token::Lt(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
                 }
-                '*' => return Some(self.advance_with_token(Token::Multiply(span))),
-
-                '.' => return Some(self.advance_with_token(Token::Dot(span))),
-                '{' => return Some(self.advance_with_token(Token::LBrace(span))),
-                '}' => return Some(self.advance_with_token(Token::RBrace(span))),
-                '(' => return Some(self.advance_with_token(Token::LParen(span))),
-                ')' => return Some(self.advance_with_token(Token::RParen(span))),
-                '[' => return Some(self.advance_with_token(Token::LSqrBr(span))),
-                ']' => return Some(self.advance_with_token(Token::RSqrBr(span))),
-                ':' => return Some(self.advance_with_token(Token::DblColon(span))),
-                ',' => return Some(self.advance_with_token(Token::Comma(span))),
-                '>' => return Some(self.advance_with_token(Token::Gt(span))),
-                '<' => return Some(self.advance_with_token(Token::Lt(span))),
-                '\n' => {
-                    self.lines += 1;
-                    return Some(self.advance_with_token(Token::NewLine(span)));
+                _ if LPAREN.is_match(slice) => {
+                    let cap = &LPAREN.captures(slice).unwrap()[0];
+                    let token = Token::LParen(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
                 }
-                ' ' | '\t' | '\r' => {
-                    self.skip_whitespace();
+                _ if RPAREN.is_match(slice) => {
+                    let cap = &RPAREN.captures(slice).unwrap()[0];
+                    let token = Token::RParen(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if LBRACE.is_match(slice) => {
+                    let cap = &LBRACE.captures(slice).unwrap()[0];
+                    let token = Token::LBrace(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if RBRACE.is_match(slice) => {
+                    let cap = &RBRACE.captures(slice).unwrap()[0];
+                    let token = Token::RBrace(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if LBRCKT.is_match(slice) => {
+                    let cap = &LBRCKT.captures(slice).unwrap()[0];
+                    let token = Token::LSqrBr(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if RBRCKT.is_match(slice) => {
+                    let cap = &RBRCKT.captures(slice).unwrap()[0];
+                    let token = Token::RSqrBr(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
                 }
                 _ => {
+                    let character = &self.content[self.pos..self.pos + 1];
+
                     ErrorMessage::new(
                         "".into(),
                         self.content.clone(),
-                        format!("I'm sorry but we do not support the character '{}'", c),
+                        format!(
+                            "I'm sorry but we do not support the character '{}'",
+                            match character {
+                                "\r" => "\\r",
+                                "\t" => "\\t",
+                                "\n" => "\\n",
+                                " " => "{space}",
+                                _ => character,
+                            }
+                            .to_string()
+                        ),
                         self.pos,
                     )
                     .print();
@@ -96,175 +184,20 @@ impl Lexer {
                 }
             }
         }
-
-        None
     }
 
-    pub fn advance(&mut self) -> &mut Self {
-        self.pos += 1;
+    pub fn advance(&mut self, how_many: usize) -> &mut Self {
+        self.pos += how_many;
         self
     }
 
-    pub fn span(&mut self) -> SourceSpan {
-        SourceSpan::new(self.pos, self.pos + 1)
-    }
-
-    pub fn advance_with_token(&mut self, token: Token) -> Token {
-        self.advance();
+    pub fn advance_with_token(&mut self, how_many: usize, token: Token) -> Token {
+        self.advance(how_many);
         token
     }
 
-    pub fn char_is_whitespace(&self) -> bool {
-        if let Some(c) = self.char() {
-            c.eq(&' ') || c.eq(&'\t') || c.eq(&'\r')
-        } else {
-            false
-        }
-    }
-
-    pub fn char_is_quote(&self) -> bool {
-        if let Some(c) = self.char() {
-            c == '\"'
-        } else {
-            false
-        }
-    }
-
-    pub fn char_is_tilde(&self) -> bool {
-        if let Some(c) = self.char() {
-            c.eq(&'`')
-        } else {
-            false
-        }
-    }
-
-    pub fn char_is_word(&self) -> bool {
-        if let Some(c) = self.char() {
-            (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
-        } else {
-            false
-        }
-    }
-
-    pub fn char_is_word_and_numeric(&self) -> bool {
-        if let Some(c) = self.char() {
-            (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'
-        } else {
-            false
-        }
-    }
-
-    pub fn char_is_numeric(&self, include_dot: bool) -> bool {
-        if let Some(c) = self.char() {
-            (c >= '0' && c <= '9') || if include_dot { c == '.' } else { false }
-        } else {
-            false
-        }
-    }
-
-    pub fn char_is_newline_or_eof(&mut self) -> bool {
-        if let Some(c) = self.char() {
-            c.eq(&'\n')
-        } else {
-            true
-        }
-    }
-
-    pub fn skip_whitespace(&mut self) -> &mut Self {
-        while self.char_is_whitespace() {
-            self.advance();
-        }
-
-        self
-    }
-
-    pub fn skip_line(&mut self) -> &mut Self {
-        while !self.char_is_newline_or_eof() {
-            self.advance();
-        }
-
-        self
-    }
-
-    pub fn skip_comment_block(&mut self) -> &mut Self {
-        while let Some(c) = self.char() {
-            if c.eq(&'*') {
-                self.advance();
-                if self.char().unwrap_or(' ') == '/' {
-                    self.advance();
-                    return self;
-                }
-            }
-
-            self.advance();
-        }
-
-        self
-    }
-
-    fn collect_id(&mut self) -> Token {
-        let start_pos = self.pos;
-
-        while self.char_is_word_and_numeric() {
-            self.advance();
-        }
-
-        let end_pos = self.pos;
-
-        Token::Id(
-            self.content[start_pos..end_pos].to_string(),
-            SourceSpan::new(start_pos, end_pos),
-        )
-    }
-
-    fn collect_string(&mut self) -> Token {
-        self.advance();
-
-        let start_pos = self.pos;
-
-        while !self.char_is_quote() {
-            self.advance();
-        }
-
-        let end_pos = self.pos;
-
-        let collected_string = self.content[start_pos..end_pos].to_string();
-
-        self.advance();
-
-        Token::Str(collected_string, SourceSpan::new(start_pos, end_pos))
-    }
-
-    fn collect_js(&mut self) -> Token {
-        self.advance();
-
-        let start_pos = self.pos;
-
-        while !self.char_is_tilde() {
-            self.advance();
-        }
-
-        let end_pos = self.pos;
-
-        let collected_string = self.content[start_pos..end_pos].to_string();
-
-        self.advance();
-
-        Token::Js(collected_string, SourceSpan::new(start_pos, end_pos))
-    }
-
-    fn collect_numeric(&mut self) -> Token {
-        let start_pos = self.pos;
-
-        while self.char_is_numeric(true) {
-            self.advance();
-        }
-
-        let end_pos = self.pos;
-
-        let collected_string = self.content[start_pos..end_pos].to_string();
-
-        Token::Numeric(collected_string, SourceSpan::new(start_pos, end_pos))
+    pub fn span(&mut self, how_many: usize) -> SourceSpan {
+        SourceSpan::new(self.pos, self.pos + how_many)
     }
 }
 
