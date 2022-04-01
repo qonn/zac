@@ -1,5 +1,5 @@
 use crate::{ast::AST, scope::Scope};
 
-use super::checker_context::CheckerContext;
+use super::checker_context::CheckingContext;
 
-pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {}
+pub fn check(ctx: &CheckingContext, scope: &mut Scope, ast: &AST) {}

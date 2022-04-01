@@ -1,8 +1,8 @@
 use crate::{ast::AST, scope::Scope, token::SourceSpan};
 
-use super::{checker_context::CheckerContext, identifier};
+use super::{checker_context::CheckingContext, identifier};
 
-pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {
+pub fn check(ctx: &CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::EnumDefinition {
         name,
         generics,
@@ -12,8 +12,8 @@ pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {
     {
         let scope = &mut scope.clone();
         define_generics_in_scope(generics, scope);
-        check_name(context, span, scope, name);
-        check_items(context, items, scope);
+        check_name(ctx, span, scope, name);
+        check_items(ctx, items, scope);
     }
 }
 
@@ -32,43 +32,43 @@ fn define_generics_in_scope(generics: &Vec<AST>, scope: &mut Scope) {
     }
 }
 
-pub fn check_name(context: &CheckerContext, span: &SourceSpan, scope: &mut Scope, name: &String) {
+pub fn check_name(ctx: &CheckingContext, span: &SourceSpan, scope: &mut Scope, name: &String) {
     if let Some(other) = scope.find_definition(name) {
         let message = format!("This enum name '{}' has been previously defined.", name);
         let pos = span.from;
-        context.print_error_message(message, pos);
+        ctx.print_error_message(message, pos);
 
         let message = format!("It was previously defined here.");
         let pos = other.source_span().from;
-        context.print_error_message(message, pos);
+        ctx.print_error_message(message, pos);
 
         panic!();
     }
 }
 
-pub fn check_items(context: &CheckerContext, items: &Vec<AST>, scope: &mut Scope) {
+pub fn check_items(ctx: &CheckingContext, items: &Vec<AST>, scope: &mut Scope) {
     let mut items_iter = items.iter();
 
     while let Some(item) = items_iter.next() {
-        check_item(context, scope, item);
+        check_item(ctx, scope, item);
     }
 }
 
-pub fn check_item(context: &CheckerContext, scope: &mut Scope, item: &AST) {
+pub fn check_item(ctx: &CheckingContext, scope: &mut Scope, item: &AST) {
     match item {
         AST::Identifier {
             value: _,
             generics,
             span: _,
         } => {
-            identifier::check_generics(context, scope, generics);
+            identifier::check_generics(ctx, scope, generics);
         }
         AST::FunctionCall {
             callee: _,
             args,
             span: _,
         } => {
-            identifier::check_multi(context, scope, args);
+            identifier::check_multi(ctx, scope, args);
         }
         _ => {
             let message = format!(
@@ -76,7 +76,7 @@ pub fn check_item(context: &CheckerContext, scope: &mut Scope, item: &AST) {
                 crate::ast::ASTKind::from(item)
             );
             let pos = item.source_span().from;
-            context.print_error_message(message, pos);
+            ctx.print_error_message(message, pos);
         }
     }
 }

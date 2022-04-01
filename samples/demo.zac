@@ -4,20 +4,27 @@ type Boolean
 type Number
 type Vec<a>
 type Fn<a>
+
+type Result<a, b> {
+    Ok(a),
+    Err(b),
+}
+
 type HtmlElement
-type JSX
 
 fn render(node: Fn<HtmlElement>, target: HtmlElement) {
     `render(#{node})`
 }
 
 fn HelloWorld() {
-    <div>Hello World!</div>
+    <div>
+        <Link href="http://example.com">
+            Hello World!
+        </Link>
+    </div>
 }
 
-/*
 render(
-    () => <HelloWorld />,
-    document.getElementById("app")
+    () { <HelloWorld /> },
+    `document.getElementById("app")`
 )
-*/

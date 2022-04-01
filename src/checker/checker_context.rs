@@ -2,13 +2,13 @@ use std::collections::HashMap;
 
 use crate::{error_message::ErrorMessage, scope::Scope};
 
-pub struct CheckerContext {
+pub struct CheckingContext {
     pub filepath: String,
     pub content: String,
     pub scopes: HashMap<String, Scope>,
 }
 
-impl CheckerContext {
+impl CheckingContext {
     pub fn print_error_message(&self, message: String, pos: usize) {
         let filepath = self.filepath.clone();
         let context = self.content.clone();
@@ -24,8 +24,8 @@ impl CheckerContext {
     }
 }
 
-pub fn new(filename: &String, content: &String) -> CheckerContext {
-    CheckerContext {
+pub fn new(filename: &String, content: &String) -> CheckingContext {
+    CheckingContext {
         filepath: filename.clone(),
         content: content.clone(),
         scopes: HashMap::new(),

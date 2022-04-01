@@ -1,8 +1,8 @@
 use crate::{ast::AST, scope::Scope};
 
-use super::checker_context::CheckerContext;
+use super::checker_context::CheckingContext;
 
-pub fn check(context: &CheckerContext, scope: &mut Scope, kind: &AST) {
+pub fn check(ctx: &CheckingContext, scope: &mut Scope, kind: &AST) {
     match kind {
         AST::Identifier {
             value,
@@ -12,32 +12,32 @@ pub fn check(context: &CheckerContext, scope: &mut Scope, kind: &AST) {
             if !scope.is_defined(value) {
                 let message = format!("The type '{:?}' used here could not be found.", value);
                 let pos = span.from;
-                context.print_error_message(message, pos);
+                ctx.print_error_message(message, pos);
                 return;
             }
 
-            check_generics(context, scope, generics);
+            check_generics(ctx, scope, generics);
         }
         _ => {
             let message = format!("Invalid AST Node '{:?}'", crate::ast::ASTKind::from(kind));
             let pos = kind.source_span().from;
-            context.print_error_message(message, pos);
+            ctx.print_error_message(message, pos);
         }
     }
 }
 
-pub fn check_multi(context: &CheckerContext, scope: &mut Scope, multi: &Vec<AST>) {
+pub fn check_multi(ctx: &CheckingContext, scope: &mut Scope, multi: &Vec<AST>) {
     let mut multi_iter = multi.iter();
 
     while let Some(item) = multi_iter.next() {
-        check(context, scope, item);
+        check(ctx, scope, item);
     }
 }
 
-pub fn check_generics(context: &CheckerContext, scope: &mut Scope, generics: &Vec<AST>) {
+pub fn check_generics(ctx: &CheckingContext, scope: &mut Scope, generics: &Vec<AST>) {
     let mut generics_iter = generics.iter();
 
     while let Some(generic) = generics_iter.next() {
-        check(context, scope, generic);
+        check(ctx, scope, generic);
     }
 }

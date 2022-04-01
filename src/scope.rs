@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{ast::AST, token::SourceSpan};
+use crate::{ast::AST};
 
 #[derive(Debug, Clone)]
 pub struct Scope {

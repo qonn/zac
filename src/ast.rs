@@ -16,7 +16,7 @@ pub enum ASTBinaryExpressionKind {
 #[strum_discriminants(name(ASTKind))]
 pub enum AST {
     Root {
-        body: Vec<AST>,
+        children: Vec<AST>,
     },
     NumberLiteral {
         value: String,
@@ -35,10 +35,26 @@ pub enum AST {
         value: String,
         span: SourceSpan,
     },
+    JsxElement {
+        name: String,
+        attrs: Vec<AST>,
+        children: Vec<AST>,
+        span: SourceSpan,
+    },
+    JsxElementAttribute {
+        name: String,
+        expr: Box<AST>,
+        span: SourceSpan,
+    },
     TypeDefinition {
         name: String,
         generics: Vec<AST>,
-        items: Vec<AST>,
+        variants: Vec<AST>,
+        span: SourceSpan,
+    },
+    TypeVariant {
+        name: String,
+        generics: Vec<AST>,
         span: SourceSpan,
     },
     EnumDefinition {
@@ -74,7 +90,7 @@ pub enum AST {
     },
     FunctionArgumentDefinition {
         name: String,
-        kind: Box<AST>,
+        type_: Box<AST>,
         span: SourceSpan,
     },
     BinaryExpression {
@@ -99,9 +115,6 @@ pub enum AST {
         property: Box<AST>,
         span: SourceSpan,
     },
-    BuiltinReservation {
-        span: SourceSpan,
-    },
 }
 
 impl AST {
@@ -109,7 +122,7 @@ impl AST {
         let span = SourceSpan::new(0, 0);
 
         let span = match self {
-            AST::Root { body: _ } => &span,
+            AST::Root { children: _ } => &span,
             AST::NumberLiteral { value: _, span } => span,
             AST::StringLiteral { value: _, span } => span,
             AST::Identifier {
@@ -118,10 +131,21 @@ impl AST {
                 span,
             } => span,
             AST::JsLiteral { value: _, span } => span,
+            AST::JsxElement {
+                name: _,
+                attrs: _,
+                children: _,
+                span,
+            } => span,
+            AST::JsxElementAttribute {
+                name: _,
+                expr: _,
+                span,
+            } => span,
             AST::TypeDefinition {
                 name: _,
                 generics: _,
-                items: _,
+                variants: _,
                 span,
             } => span,
             AST::EnumDefinition {
@@ -154,7 +178,7 @@ impl AST {
             } => span,
             AST::FunctionArgumentDefinition {
                 name: _,
-                kind: _,
+                type_: _,
                 span,
             } => span,
             AST::BinaryExpression {
@@ -174,11 +198,14 @@ impl AST {
                 alternative: _,
                 span,
             } => span,
-
-            AST::BuiltinReservation { span } => span,
             AST::MemberExpression {
                 object: _,
                 property: _,
+                span,
+            } => span,
+            AST::TypeVariant {
+                name: _,
+                generics: _,
                 span,
             } => span,
         };

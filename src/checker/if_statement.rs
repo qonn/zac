@@ -1,8 +1,8 @@
 use crate::{ast::AST, scope::Scope};
 
-use super::{checker_context::CheckerContext, statement};
+use super::{checker_context::CheckingContext, statement};
 
-pub fn check(context: &CheckerContext, scope: &mut Scope, if_statement: &AST) {
+pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, if_statement: &AST) {
     if let AST::IfStatement {
         test: _,
         consequence,
@@ -10,13 +10,13 @@ pub fn check(context: &CheckerContext, scope: &mut Scope, if_statement: &AST) {
         span: _,
     } = if_statement
     {
-        check_consequence(context, scope, if_statement, consequence);
-        check_alternative(context, scope, if_statement, alternative);
+        check_consequence(ctx, scope, if_statement, consequence);
+        check_alternative(ctx, scope, if_statement, alternative);
     }
 }
 
 pub fn check_consequence(
-    context: &CheckerContext,
+    ctx: &mut CheckingContext,
     scope: &mut Scope,
     if_statement: &AST,
     consequence: &Vec<AST>,
@@ -24,12 +24,12 @@ pub fn check_consequence(
     let mut consequence = consequence.iter();
 
     while let Some(consequence) = consequence.next() {
-        statement::check(context, scope, consequence)
+        statement::check(ctx, scope, consequence)
     }
 }
 
 pub fn check_alternative(
-    context: &CheckerContext,
+    ctx: &mut CheckingContext,
     scope: &mut Scope,
     if_statement: &AST,
     alternative: &Vec<AST>,
@@ -37,6 +37,6 @@ pub fn check_alternative(
     let mut alternative = alternative.iter();
 
     while let Some(alternative) = alternative.next() {
-        statement::check(context, scope, alternative)
+        statement::check(ctx, scope, alternative)
     }
 }

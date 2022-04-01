@@ -1,10 +1,13 @@
-use super::{binary_expression, checker_context::CheckerContext, identifier, type_resolver};
+use super::{
+    binary_expression, checker_context::CheckingContext, function_definition, identifier,
+    type_resolver,
+};
 use crate::{
     ast::{ASTKind, AST},
     scope::Scope,
 };
 
-pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {
+pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::FunctionCall {
         callee,
         args,
@@ -13,13 +16,13 @@ pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {
     {
         let caller = ast;
 
-        if let Some(callee) = resolve_callee(context, scope, callee) {
-            check_args(context, scope, caller, &callee, args);
+        if let Some(callee) = resolve_callee(ctx, scope, callee) {
+            check_args(ctx, scope, caller, &callee, args);
         }
     }
 }
 
-fn resolve_callee<'a>(context: &CheckerContext, scope: &'a Scope, callee: &AST) -> Option<AST> {
+fn resolve_callee<'a>(ctx: &mut CheckingContext, scope: &'a Scope, callee: &AST) -> Option<AST> {
     if let AST::Identifier {
         value,
         generics: _,
@@ -33,7 +36,7 @@ fn resolve_callee<'a>(context: &CheckerContext, scope: &'a Scope, callee: &AST) 
         } else {
             let message = format!("The function '{:?}' used here could not be found.", value);
             let pos = span.from;
-            context.print_error_message(message, pos);
+            ctx.print_error_message(message, pos);
             None
         }
     } else {
@@ -42,7 +45,7 @@ fn resolve_callee<'a>(context: &CheckerContext, scope: &'a Scope, callee: &AST) 
 }
 
 fn check_args(
-    context: &CheckerContext,
+    ctx: &mut CheckingContext,
     scope: &mut Scope,
     caller: &AST,
     callee: &AST,
@@ -62,7 +65,7 @@ fn check_args(
                 args.len()
             );
             let pos = caller.source_span().from;
-            context.print_error_message(message, pos);
+            ctx.print_error_message(message, pos);
         }
 
         let mut callee_args = callee_args.iter();
@@ -71,34 +74,36 @@ fn check_args(
         while let (Some(callee_arg), Some(caller_arg)) = (callee_args.next(), caller_args.next()) {
             match ASTKind::from(caller_arg) {
                 ASTKind::Identifier => {
-                    identifier::check(context, scope, caller_arg);
+                    identifier::check(ctx, scope, caller_arg);
                 }
                 ASTKind::NumberLiteral => {}
                 ASTKind::StringLiteral => {}
-                ASTKind::FunctionCall => check(context, scope, caller_arg),
-                ASTKind::BinaryExpression => binary_expression::check(context, scope, caller_arg),
+                ASTKind::JsLiteral => {}
+                ASTKind::FunctionCall => check(ctx, scope, caller_arg),
+                ASTKind::FunctionDefinition => function_definition::check(ctx, scope, caller_arg),
+                ASTKind::BinaryExpression => binary_expression::check(ctx, scope, caller_arg),
                 _ => {
                     let message = format!("Unexpected function call argument's syntax.");
                     let pos = caller_arg.source_span().from;
-                    context.print_error_message(message, pos);
+                    ctx.print_error_message(message, pos);
                 }
             }
 
-            check_arg_type(context, scope, callee, callee_arg, caller, caller_arg);
+            check_arg_type(ctx, scope, callee, callee_arg, caller, caller_arg);
         }
     }
 }
 
 fn check_arg_type(
-    context: &CheckerContext,
+    ctx: &mut CheckingContext,
     scope: &Scope,
     callee: &AST,
     callee_arg: &AST,
     caller: &AST,
     caller_arg: &AST,
 ) {
-    let resolved_callee_arg = type_resolver::resolve(context, scope, callee, callee_arg);
-    let resolved_caller_arg = type_resolver::resolve(context, scope, caller, caller_arg);
+    let resolved_callee_arg = type_resolver::resolve(ctx, scope, callee_arg);
+    let resolved_caller_arg = type_resolver::resolve(ctx, scope, caller_arg);
 
     if let (
         AST::FunctionDefinition {
@@ -109,7 +114,7 @@ fn check_arg_type(
         },
         AST::FunctionArgumentDefinition {
             name: callee_arg_name,
-            kind: _,
+            type_: _,
             span: _,
         },
     ) = (callee, callee_arg)
@@ -120,7 +125,7 @@ fn check_arg_type(
                 callee_name, callee_arg_name, resolved_callee_arg, resolved_caller_arg
             );
             let pos = caller_arg.source_span().from;
-            context.print_error_message(message, pos);
+            ctx.print_error_message(message, pos);
         }
     }
 }

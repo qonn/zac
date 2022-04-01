@@ -1,5 +1,5 @@
 use super::{
-    binary_expression, checker_context::CheckerContext, function_call, identifier, if_statement,
+    binary_expression, checker_context::CheckingContext, function_call, if_statement, jsx_element,
     literal, variable_declaration,
 };
 use crate::{
@@ -7,19 +7,20 @@ use crate::{
     scope::Scope,
 };
 
-pub fn check(context: &CheckerContext, scope: &mut Scope, ast: &AST) {
+pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     match ASTKind::from(ast) {
-        ASTKind::JsLiteral => literal::check(context, scope, ast),
-        ASTKind::StringLiteral => literal::check(context, scope, ast),
-        ASTKind::NumberLiteral => literal::check(context, scope, ast),
-        ASTKind::IfStatement => if_statement::check(context, scope, ast),
-        ASTKind::BinaryExpression => binary_expression::check(context, scope, ast),
-        ASTKind::VariableDeclaration => variable_declaration::check(context, scope, ast),
-        ASTKind::FunctionCall => function_call::check(context, scope, ast),
+        ASTKind::JsLiteral => literal::check(ctx, scope, ast),
+        ASTKind::StringLiteral => literal::check(ctx, scope, ast),
+        ASTKind::NumberLiteral => literal::check(ctx, scope, ast),
+        ASTKind::IfStatement => if_statement::check(ctx, scope, ast),
+        ASTKind::BinaryExpression => binary_expression::check(ctx, scope, ast),
+        ASTKind::VariableDeclaration => variable_declaration::check(ctx, scope, ast),
+        ASTKind::FunctionCall => function_call::check(ctx, scope, ast),
+        ASTKind::JsxElement => jsx_element::check(ctx, scope, ast),
         _ => {
             let message = format!("Unsupported '{:?}' statement.", ASTKind::from(ast));
             let pos = ast.source_span().from;
-            context.print_error_message(message, pos);
+            ctx.print_error_message(message, pos);
             return;
         }
     }

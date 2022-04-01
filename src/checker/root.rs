@@ -5,37 +5,34 @@ use crate::{
 };
 
 use super::{
-    array_declarator, checker_context::CheckerContext, enum_definition, function_call,
+    array_declarator, checker_context::CheckingContext, enum_definition, function_call,
     function_definition, member_expression, record_definition, type_definition,
     variable_declaration,
 };
 
-pub fn check(context: &mut CheckerContext, ast: Vec<AST>) {
-    let mut ast_iter = ast.iter();
+pub fn check(ctx: &mut CheckingContext, ast: AST) {
     let mut global_scope = scope::new();
 
-    while let Some(ast) = ast_iter.next() {
-        match ast {
-            AST::Root { body } => {
-                check_body(context, &mut global_scope, body);
-            }
-            _ => {
-                panic!(
-                    "Unexpected '{:?}', expecting '{:?}'",
-                    ASTKind::from(ast),
-                    ASTKind::Root
-                )
-            }
+    match ast {
+        AST::Root { children } => {
+            check_children(ctx, &mut global_scope, &children);
+        }
+        _ => {
+            panic!(
+                "Unexpected '{:?}', expecting '{:?}'",
+                ASTKind::from(ast),
+                ASTKind::Root
+            )
         }
     }
 }
 
-pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AST>) {
-    let mut body_iter = body.iter();
+pub fn check_children(ctx: &mut CheckingContext, scope: &mut Scope, body: &Vec<AST>) {
+    let mut children_iter = body.iter();
 
-    while let Some(body) = body_iter.next() {
-        match body {
-            AST::Root { body: _ } => {}
+    while let Some(child) = children_iter.next() {
+        match child {
+            AST::Root { children: _ } => {}
             AST::NumberLiteral { value: _, span: _ } => {}
             AST::StringLiteral { value: _, span: _ } => {}
             AST::Identifier {
@@ -44,14 +41,25 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 span: _,
             } => {}
             AST::JsLiteral { value: _, span: _ } => {}
+            AST::JsxElement {
+                name: _,
+                attrs: _,
+                children: _,
+                span: _,
+            } => {}
+            AST::JsxElementAttribute {
+                name: _,
+                expr: _,
+                span: _,
+            } => {}
             AST::TypeDefinition {
                 name,
                 generics: _,
-                items: _,
+                variants: _,
                 span: _,
             } => {
-                type_definition::check(context, scope, body);
-                scope.add_type_definition(&name, body);
+                type_definition::check(ctx, scope, child);
+                scope.add_type_definition(&name, child);
             }
             AST::EnumDefinition {
                 name,
@@ -59,16 +67,16 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 items: _,
                 span: _,
             } => {
-                enum_definition::check(context, scope, body);
-                scope.add_enum_definition(&name, body);
+                enum_definition::check(ctx, scope, child);
+                scope.add_enum_definition(&name, child);
             }
             AST::RecordDefinition {
                 name,
                 keys: _,
                 span: _,
             } => {
-                record_definition::check(context, scope, body);
-                scope.add_record_definition(&name, body);
+                record_definition::check(ctx, scope, child);
+                scope.add_record_definition(&name, child);
             }
             AST::RecordKeyDefinition {
                 name: _,
@@ -80,11 +88,11 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 value: _,
                 span: _,
             } => {
-                variable_declaration::check(context, scope, body);
-                scope.add_variable_definition(&name, body);
+                variable_declaration::check(ctx, scope, child);
+                scope.add_variable_definition(&name, child);
             }
             AST::ArrayDeclarator { items: _, span: _ } => {
-                array_declarator::check(context, scope, body);
+                array_declarator::check(ctx, scope, child);
             }
             AST::FunctionDefinition {
                 name: _,
@@ -92,11 +100,11 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 body: _,
                 span: _,
             } => {
-                function_definition::check(context, scope, body);
+                function_definition::check(ctx, scope, child);
             }
             AST::FunctionArgumentDefinition {
                 name: _,
-                kind: _,
+                type_: _,
                 span: _,
             } => {}
             AST::BinaryExpression {
@@ -110,7 +118,7 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 args: _,
                 span: _,
             } => {
-                function_call::check(context, scope, body);
+                function_call::check(ctx, scope, child);
             }
             AST::IfStatement {
                 test: _,
@@ -118,12 +126,16 @@ pub fn check_body(context: &mut CheckerContext, scope: &mut Scope, body: &Vec<AS
                 alternative: _,
                 span: _,
             } => {}
-            AST::BuiltinReservation { span: _ } => {}
             AST::MemberExpression {
                 object,
                 property,
                 span,
-            } => member_expression::check(context, scope, body),
+            } => member_expression::check(ctx, scope, child),
+            AST::TypeVariant {
+                name,
+                generics,
+                span,
+            } => {}
         }
     }
 }

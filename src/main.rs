@@ -8,7 +8,7 @@ pub mod ast;
 pub mod checker;
 pub mod error_message;
 pub mod lexer;
-pub mod parser;
+mod parser;
 pub mod scope;
 pub mod token;
 
@@ -35,9 +35,8 @@ fn main() {
         let filepath = d.path().to_string_lossy().to_string();
         println!("parsing {}", filepath);
         let content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
-        let mut lexer = lexer::new(&content);
-        let mut parser = parser::parse(&mut lexer);
-        let ast = parser.parse();
+        let mut lexer = lexer::new(&filepath, &content);
+        let ast = parser::parse(&mut lexer);
         if filepath.contains("demo") {
             println!("{:#?}", ast);
         }
