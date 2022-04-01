@@ -1,6 +1,6 @@
 use crate::{ast::AST, scope::Scope, token::SourceSpan};
 
-use super::{checker_context::CheckingContext, identifier};
+use super::{context::CheckingContext, identifier};
 
 pub fn check(ctx: &CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::EnumDefinition {

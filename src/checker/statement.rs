@@ -1,5 +1,5 @@
 use super::{
-    binary_expression, checker_context::CheckingContext, function_call, if_statement, jsx_element,
+    binary_expression, context::CheckingContext, function_call, if_statement, jsx_element,
     literal, variable_declaration,
 };
 use crate::{

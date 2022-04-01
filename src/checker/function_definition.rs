@@ -4,7 +4,7 @@ use crate::{
     token::SourceSpan,
 };
 
-use super::{checker_context::CheckingContext, identifier, statement};
+use super::{context::CheckingContext, identifier, statement};
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::FunctionDefinition {

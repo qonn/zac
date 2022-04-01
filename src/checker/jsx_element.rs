@@ -1,4 +1,4 @@
-use super::checker_context::CheckingContext;
+use super::context::CheckingContext;
 use crate::{ast::AST, scope::Scope};
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {

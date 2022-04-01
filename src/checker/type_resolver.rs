@@ -1,6 +1,6 @@
 use crate::{ast::AST, scope::Scope, token::SourceSpan};
 
-use super::checker_context::CheckingContext;
+use super::context::CheckingContext;
 
 pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String {
     let result = match target {

@@ -1,6 +1,6 @@
 mod array_declarator;
 mod binary_expression;
-mod checker_context;
+mod context;
 mod enum_definition;
 mod function_call;
 mod function_definition;
@@ -19,6 +19,6 @@ mod jsx_element;
 use crate::ast::AST;
 
 pub fn check(filepath: &String, content: &String, ast: AST) {
-    let mut context = checker_context::new(filepath, content);
+    let mut context = context::new(filepath, content);
     root::check(&mut context, ast);
 }

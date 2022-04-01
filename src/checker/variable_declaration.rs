@@ -1,6 +1,6 @@
 use crate::{ast::AST, scope::Scope, token::SourceSpan};
 
-use super::{array_declarator, checker_context::CheckingContext, function_call};
+use super::{array_declarator, context::CheckingContext, function_call};
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::VariableDeclaration { value, name, span } = ast {

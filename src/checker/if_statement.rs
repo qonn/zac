@@ -1,6 +1,6 @@
 use crate::{ast::AST, scope::Scope};
 
-use super::{checker_context::CheckingContext, statement};
+use super::{context::CheckingContext, statement};
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, if_statement: &AST) {
     if let AST::IfStatement {

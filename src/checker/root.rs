@@ -5,7 +5,7 @@ use crate::{
 };
 
 use super::{
-    array_declarator, checker_context::CheckingContext, enum_definition, function_call,
+    array_declarator, context::CheckingContext, enum_definition, function_call,
     function_definition, member_expression, record_definition, type_definition,
     variable_declaration,
 };

@@ -4,7 +4,7 @@ use crate::{
 };
 
 use super::{
-    binary_expression, checker_context::CheckingContext, function_call, identifier, literal,
+    binary_expression, context::CheckingContext, function_call, identifier, literal,
     type_resolver,
 };
 
