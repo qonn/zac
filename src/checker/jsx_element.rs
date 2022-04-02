@@ -20,8 +20,6 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     }
 }
 fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &SourceSpan) {
-    println!("{name}");
-
     if !scope.is_defined(name) && !is_reserved_name(name) {
         let message = format!(
             "This JSX Element '{:?}' used here could not be found.",

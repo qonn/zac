@@ -1,10 +1,10 @@
-mod root;
-mod function_definition;
 mod function_call;
+mod function_definition;
 mod js_literal;
 mod jsx_element;
-mod string_literal;
 mod jsx_element_attribute;
+mod root;
+mod string_literal;
 
 use std::{
     fs,
@@ -21,13 +21,14 @@ pub fn generate(filepath: String, root_ast: &AST) {
 
     let target_folder_path = &filepath.replace("samples", "build");
     let target_folder_path = normalize_path(&Path::new(target_folder_path).join(".."));
+    let target_file_path = target_folder_path.join(source_file_name);
 
     println!(
-        "{}, {}, {}, {}",
-        source_file_name.to_str().unwrap(),
+        "generating source_folder_path={}, source_file_name={}, target_folder_path={}, target_file_path={}",
         source_folder_path.to_str().unwrap(),
+        source_file_name.to_str().unwrap(),
         target_folder_path.to_str().unwrap(),
-        target_folder_path.join(source_file_name).to_str().unwrap(),
+        target_file_path.to_str().unwrap(),
     );
 
     let _ = fs::create_dir_all(&target_folder_path);
