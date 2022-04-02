@@ -22,11 +22,14 @@ fn render(node: Fn<HtmlElement>, target: HtmlElement) {
     `render(#{node})`
 }
 
+fn Link() {
+    <a href="http://example.com">
+        This is a test link
+    </a>
+}
 fn HelloWorld() {
     <div>
-        <Link href="http://example.com">
-            Hello World!
-        </Link>
+        <Link />
     </div>
 }
 
