@@ -4,6 +4,7 @@ mod function_call;
 mod js_literal;
 mod jsx_element;
 mod string_literal;
+mod jsx_element_attribute;
 
 use std::{
     fs,
