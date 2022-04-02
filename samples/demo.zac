@@ -12,6 +12,12 @@ type Result<a, b> {
 
 type HtmlElement
 
+/* builtin functions */
+
+fn print(what: String) {
+    `console.log(what)`
+}
+
 fn render(node: Fn<HtmlElement>, target: HtmlElement) {
     `render(#{node})`
 }
