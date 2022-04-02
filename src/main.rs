@@ -7,6 +7,7 @@ use std::{
 pub mod ast;
 pub mod checker;
 pub mod error_message;
+mod generator;
 pub mod lexer;
 mod parser;
 pub mod scope;
@@ -40,7 +41,8 @@ fn main() {
         if filepath.contains("demo") {
             println!("{:#?}", ast);
         }
-        checker::check(&filepath, &content, ast);
+        checker::check(&filepath, &content, &ast);
+        generator::generate(filepath, &ast)
     });
 
     println!("successfully parse everything!");

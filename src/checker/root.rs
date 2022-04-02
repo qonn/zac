@@ -45,6 +45,7 @@ pub fn check_children(ctx: &mut CheckingContext, scope: &mut Scope, body: &Vec<A
                 name: _,
                 attrs: _,
                 children: _,
+                self_closing: _,
                 span: _,
             } => {}
             AST::JsxElementAttribute {

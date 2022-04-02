@@ -34,6 +34,7 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
             name: _,
             attrs: _,
             children: _,
+            self_closing: _,
             span: _,
         } => "HtmlElement".to_string(),
         AST::JsxElementAttribute {

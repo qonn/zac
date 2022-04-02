@@ -13,6 +13,7 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
 
         let attrs = parse_attrs(ctx);
         let mut children = vec![];
+        let mut self_closing = false;
 
         match ctx.get_curr_token() {
             Token::Gt(_) => {
@@ -27,7 +28,10 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
                     }
                 }
             }
-            Token::JsxSelfClose(_) => ctx.eat_jsx(TokenKind::JsxSelfClose),
+            Token::JsxSelfClose(_) => {
+                self_closing = true;
+                ctx.eat_jsx(TokenKind::JsxSelfClose);
+            }
             _ => {
                 ctx.throw_unexpected_token();
             }
@@ -40,6 +44,7 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
             name,
             attrs,
             children,
+            self_closing,
             span,
         })
     } else {

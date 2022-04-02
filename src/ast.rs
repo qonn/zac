@@ -39,6 +39,7 @@ pub enum AST {
         name: String,
         attrs: Vec<AST>,
         children: Vec<AST>,
+        self_closing: bool,
         span: SourceSpan,
     },
     JsxElementAttribute {
@@ -135,6 +136,7 @@ impl AST {
                 name: _,
                 attrs: _,
                 children: _,
+                self_closing: _,
                 span,
             } => span,
             AST::JsxElementAttribute {
