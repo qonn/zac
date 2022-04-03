@@ -33,7 +33,10 @@ pub fn generate(filepath: String, root_ast: &AST) {
 
     let _ = fs::create_dir_all(&target_folder_path);
     let content = root::generate(root_ast);
-    let _ = fs::write(target_folder_path.join(source_file_name), content);
+    let _ = fs::write(
+        target_folder_path.join(source_file_name.to_str().unwrap().replace(".zac", ".jsx")),
+        content,
+    );
 }
 
 pub fn normalize_path(path: &Path) -> PathBuf {

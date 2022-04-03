@@ -1,8 +1,24 @@
 use crate::ast::AST;
+use lazy_static::lazy_static;
+use regex::Regex;
+
+lazy_static! {
+    static ref VARIABLE_REPLACEMENT: Regex = Regex::new(r#"#\{([a-zA-Z0-9_]*)\}"#).unwrap();
+}
 
 pub fn generate(ast: &AST) -> String {
     if let AST::JsLiteral { value, span: _ } = ast {
-        value.to_string()
+        let mut final_value = value.clone();
+
+        for found in VARIABLE_REPLACEMENT.find_iter(value) {
+            let to_replace = found.as_str();
+            if let Some(caps) = VARIABLE_REPLACEMENT.captures(to_replace) {
+                let variable = &caps[1];
+                final_value = final_value.replace(to_replace, variable);
+            }
+        }
+
+        final_value.to_string()
     } else {
         "".into()
     }

@@ -8,7 +8,7 @@ pub fn generate(ast: &AST) -> String {
         attrs,
         children,
         self_closing,
-        span,
+        span: _,
     } = ast
     {
         let attrs = generate_attrs(attrs);

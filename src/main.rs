@@ -38,9 +38,6 @@ fn main() {
         let content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
         let mut lexer = lexer::new(&filepath, &content);
         let ast = parser::parse(&mut lexer);
-        if filepath.contains("demo") {
-            println!("{:#?}", ast);
-        }
         checker::check(&filepath, &content, &ast);
         generator::generate(filepath, &ast)
     });
