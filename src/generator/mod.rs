@@ -5,6 +5,11 @@ mod jsx_element;
 mod jsx_element_attribute;
 mod root;
 mod string_literal;
+mod return_statement;
+mod expression;
+mod variable_statement;
+mod identifier;
+mod number_literal;
 
 use std::{
     fs,

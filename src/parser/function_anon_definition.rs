@@ -51,7 +51,7 @@ fn parse_args(ctx: &mut ParsingContext) -> Vec<AST> {
 
         ctx.eat(TokenKind::DblColon);
 
-        let type_ = Box::new(identifier::parse_non_reserved_keywords(ctx, true).unwrap());
+        let type_ = Box::new(identifier::parse_non_reserved_keywords(ctx, true));
 
         let span_to = ctx.get_curr_token().span().from;
 

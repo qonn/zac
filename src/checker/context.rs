@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use crate::{error_message::ErrorMessage, scope::Scope};
+use crate::{ast::AST, error_message::ErrorMessage, scope::Scope};
 
 pub struct CheckingContext {
     pub filepath: String,
     pub content: String,
-    pub scopes: HashMap<String, Scope>,
+    pub scopes: HashMap<String, Box<Scope>>,
 }
 
 impl CheckingContext {
@@ -16,10 +16,10 @@ impl CheckingContext {
     }
 
     pub fn add_scope(&mut self, identifier: &String, scope: Scope) {
-        self.scopes.insert(identifier.clone(), scope);
+        self.scopes.insert(identifier.clone(), Box::new(scope));
     }
 
-    pub fn get_scope(&self, identifier: &String) -> Option<&Scope> {
+    pub fn get_scope(&self, identifier: &String) -> Option<&Box<Scope>> {
         self.scopes.get(identifier)
     }
 }

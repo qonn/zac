@@ -1,0 +1,48 @@
+`import { h, renderSSR, Helmet } from './deps.ts'
+import { Application, Router } from './deps.ts'
+
+import { Comments } from './components/Comments.tsx'
+import { Hello } from './components/Hello.tsx'`
+
+/* builtin types */
+type String
+type Boolean
+type Number
+type Vec<a>
+type Fn<a>
+
+type Result<a, b> {
+    Ok(a),
+    Err(b),
+}
+
+type HtmlElement
+
+/* builtin functions */
+
+fn print(what: String) {
+    return `console.log(what)`
+}
+
+fn render_(node: Fn<HtmlElement>, target: HtmlElement) {
+    return `render(#{node})`
+}
+
+fn Link() {
+    return
+        <a href="http://example.com">
+            This is a test link
+        </a>
+}
+
+fn HelloWorld() {
+    return
+        <div>
+            <Link />
+        </div>
+}
+
+render_(
+    () { return <HelloWorld /> },
+    `document.getElementById("app")`
+)

@@ -1,6 +1,8 @@
 use crate::ast::{ASTKind, AST};
 
-use super::{function_definition, js_literal};
+use super::{
+    function_definition, identifier, js_literal, jsx_element, number_literal, string_literal,
+};
 
 pub fn generate(ast: &AST) -> String {
     if let AST::FunctionCall {
@@ -31,6 +33,10 @@ pub fn generate_args(args: &Vec<AST>) -> String {
         .map(|arg| match ASTKind::from(arg) {
             ASTKind::FunctionDefinition => function_definition::generate(arg),
             ASTKind::JsLiteral => js_literal::generate(arg),
+            ASTKind::JsxElement => jsx_element::generate(arg),
+            ASTKind::Identifier => identifier::generate(arg),
+            ASTKind::NumberLiteral => number_literal::generate(arg),
+            ASTKind::StringLiteral => string_literal::generate(arg, false, false),
             _ => panic!("Unexpected arg AST Node {arg:#?}"),
         })
         .collect::<Vec<String>>()

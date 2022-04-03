@@ -15,6 +15,7 @@ mod statement;
 mod type_definition;
 mod type_resolver;
 mod variable_declaration;
+mod return_statement;
 
 use crate::ast::AST;
 

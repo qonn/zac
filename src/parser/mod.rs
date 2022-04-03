@@ -12,6 +12,8 @@ mod jsx_element;
 mod expression;
 mod function_call;
 mod function_anon_definition;
+mod return_statement;
+mod variable_statement;
 
 use self::context::ParsingContext;
 use crate::{ast::AST, lexer::Lexer};

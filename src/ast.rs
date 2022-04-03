@@ -74,7 +74,7 @@ pub enum AST {
         kind: Vec<AST>,
         span: SourceSpan,
     },
-    VariableDeclaration {
+    VariableStatement {
         name: String,
         value: Vec<AST>,
         span: SourceSpan,
@@ -114,6 +114,10 @@ pub enum AST {
     MemberExpression {
         object: Box<AST>,
         property: Box<AST>,
+        span: SourceSpan,
+    },
+    ReturnStatement {
+        expr: Option<Box<AST>>,
         span: SourceSpan,
     },
 }
@@ -166,7 +170,7 @@ impl AST {
                 kind: _,
                 span,
             } => span,
-            AST::VariableDeclaration {
+            AST::VariableStatement {
                 name: _,
                 value: _,
                 span,
@@ -210,6 +214,7 @@ impl AST {
                 generics: _,
                 span,
             } => span,
+            AST::ReturnStatement { expr: _, span } => span,
         };
 
         span.clone()

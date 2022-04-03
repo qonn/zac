@@ -5,7 +5,7 @@ use crate::{
 
 use super::{context::ParsingContext, function_call, function_definition, type_definition};
 
-pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
+pub fn parse(ctx: &mut ParsingContext) -> AST {
     if let Token::Id(value, _) = ctx.get_curr_token() {
         parse_reserved_keywords(ctx, value)
     } else {
@@ -14,7 +14,7 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
     }
 }
 
-fn parse_reserved_keywords(ctx: &mut ParsingContext, value: String) -> Option<AST> {
+fn parse_reserved_keywords(ctx: &mut ParsingContext, value: String) -> AST {
     match value.as_str() {
         "type" => type_definition::parse(ctx),
         "fn" => function_definition::parse(ctx),
@@ -22,7 +22,7 @@ fn parse_reserved_keywords(ctx: &mut ParsingContext, value: String) -> Option<AS
     }
 }
 
-pub fn parse_non_reserved_keywords(ctx: &mut ParsingContext, allow_generics: bool) -> Option<AST> {
+pub fn parse_non_reserved_keywords(ctx: &mut ParsingContext, allow_generics: bool) -> AST {
     let current_token = ctx.get_curr_token();
 
     match current_token.value().as_str() {
@@ -49,7 +49,7 @@ pub fn parse_non_reserved_keywords(ctx: &mut ParsingContext, allow_generics: boo
 
     let identifier = function_call::parse(ctx, identifier);
 
-    Some(identifier)
+    identifier
 }
 
 fn parse_generics(ctx: &mut ParsingContext, allow_generics: bool) -> Vec<AST> {
@@ -69,9 +69,7 @@ fn parse_generics(ctx: &mut ParsingContext, allow_generics: bool) -> Vec<AST> {
                 break;
             }
 
-            if let Some(generic) = parse_non_reserved_keywords(ctx, true) {
-                generics.push(generic)
-            }
+            generics.push(parse_non_reserved_keywords(ctx, true));
 
             if let Token::Comma(_) = ctx.get_curr_token() {
                 ctx.eat(TokenKind::Comma);

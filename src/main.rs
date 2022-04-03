@@ -34,12 +34,15 @@ fn main() {
 
     let _ = visit_dirs(Path::new("./samples"), &|d| {
         let filepath = d.path().to_string_lossy().to_string();
-        println!("parsing {}", filepath);
-        let content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
-        let mut lexer = lexer::new(&filepath, &content);
-        let ast = parser::parse(&mut lexer);
-        checker::check(&filepath, &content, &ast);
-        generator::generate(filepath, &ast)
+        if !filepath.contains(".zac") {
+        } else {
+            println!("parsing {}", filepath);
+            let content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
+            let mut lexer = lexer::new(&filepath, &content);
+            let ast = parser::parse(&mut lexer);
+            checker::check(&filepath, &content, &ast);
+            generator::generate(filepath, &ast)
+        }
     });
 
     println!("successfully parse everything!");

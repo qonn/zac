@@ -34,14 +34,14 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
             name: _,
             attrs: _,
             children: _,
-            self_closing: _,
             span: _,
-        } => "HtmlElement".to_string(),
+            self_closing: _,
+        } => "Element".to_string(),
         AST::JsxElementAttribute {
             name: _,
             expr: _,
             span: _,
-        } => "HtmlElementAttribute".to_string(),
+        } => "ElementAttribute".to_string(),
         AST::TypeDefinition {
             name,
             generics: _,
@@ -64,7 +64,7 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
             kind: _,
             span: _,
         } => "RecordKeyDefinition".to_string(),
-        AST::VariableDeclaration {
+        AST::VariableStatement {
             name: _,
             value,
             span: _,
@@ -106,7 +106,7 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
             callee,
             args: _,
             span: _,
-        } => resolve(ctx, scope, callee),
+        } => resolve_returning_type(ctx, scope, callee),
         AST::IfStatement {
             test: _,
             consequence: _,
@@ -123,7 +123,61 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
             generics: _,
             span: _,
         } => todo!(),
+        AST::ReturnStatement { expr, span: _ } => {
+            if let Some(expr) = expr {
+                resolve(ctx, scope, expr)
+            } else {
+                "()".into()
+            }
+        }
     };
 
     result.into()
+}
+
+pub fn resolve_returning_type(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String {
+    match target {
+        AST::Identifier {
+            value,
+            generics,
+            span: _,
+        } => {
+            let found_definition = scope.find_definition(value).unwrap();
+            let name = resolve_returning_type(ctx, scope, found_definition);
+            let mut generic_names = vec![];
+            let mut generics_iter = generics.iter();
+
+            while let Some(generic) = generics_iter.next() {
+                generic_names.push(resolve_returning_type(ctx, scope, generic));
+            }
+
+            let name = if generic_names.len() > 0 {
+                format!("{}<{}>", name, generic_names.join(","))
+            } else {
+                name
+            };
+
+            name
+        }
+        AST::FunctionDefinition {
+            name,
+            args,
+            body,
+            span,
+        } => format!(
+            "{}",
+            resolve(
+                ctx,
+                &scope,
+                body.last().unwrap_or(&AST::Identifier {
+                    value: "Unit".into(),
+                    generics: vec![],
+                    span: SourceSpan::empty(),
+                })
+            ),
+        ),
+        _ => panic!(
+            "Type resolver currently does not support resolving returning type for {target:#?}"
+        ),
+    }
 }

@@ -3,7 +3,7 @@ use crate::{ast::AST, scope::Scope, token::SourceSpan};
 use super::{array_declarator, context::CheckingContext, function_call};
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
-    if let AST::VariableDeclaration { value, name, span } = ast {
+    if let AST::VariableStatement { value, name, span } = ast {
         check_name(ctx, span, scope, name);
 
         let mut value_iters = value.iter();

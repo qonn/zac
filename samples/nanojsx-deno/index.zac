@@ -1,0 +1,102 @@
+`import { h, renderSSR, Helmet } from './deps.jsx'`
+`import { Application, Router } from './deps.jsx'`
+`import { Comments } from './components/Comments.jsx'`
+`import { Hello } from './components/Hello.jsx'`
+
+/* builtin types */
+type String
+type Boolean
+type Number
+type Vec<a>
+type Fn<a>
+type Result<a, b> {
+    Ok(a),
+    Err(b),
+}
+type Element
+/* builtin types */
+
+let comments = [
+    "Hey! This is the first comment.",
+    "Hi, from another comment!"
+]
+
+fn App() {
+    return <div>
+    <Helmet>
+      <title>Nano JSX SSR</title>
+      <meta name="description" content="Server Side Rendered Nano JSX Application" />
+    </Helmet>
+
+    <Hello />
+
+    <h2>Comments</h2>
+
+    <div id="comments">
+      <Comments comments={comments} />
+    </div>
+  </div>
+}
+
+fn renderSSR_(node: Element) {
+    return `renderSSR(#{node})`
+}
+
+fn helmetSSR_(rendered_ssr_result: String) {
+    return `Helmet.SSR(#{rendered_ssr_result})`
+}
+
+let ssr = renderSSR_(<App />)
+let helmet = helmetSSR_(ssr)
+
+let html = "
+<!DOCTYPE html>
+<html lang=\"en\">
+  <head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    #{helmet.head.join('\n')}
+  </head>
+  <body>
+    #{helmet.body}
+    #{helmet.footer.join('\n')}
+  </body>
+</html>"
+
+fn Router_() {
+    return `new Router()`
+}
+
+let router = Router_()
+
+`
+router.get('/', (context) => {
+    context.response.body = html
+})
+`
+
+type Application
+
+fn Application_() {
+    return `new Application()`
+}
+
+let app = Application_()
+let port = 5000
+
+`
+app.use(router.routes())
+app.use(router.allowedMethods())
+
+app.addEventListener('listen', ({ port }) => {
+  console.log("Listening on: http://localhost:" + #{port})
+})
+
+await app.listen({ port: #{port} })
+`
+
+fn app_listen(app: Application, port: Number) {
+    `app.listen({ port })`
+}
+
+app_listen(app, 5000)

@@ -8,7 +8,7 @@ use regex::Regex;
 lazy_static! {
     static ref COMMENT_LINE: Regex = Regex::new(r"^(//.+)").unwrap();
     static ref COMMENT_BLOCK: Regex = Regex::new(r"^(/\*(?s)(.*?)\*/)").unwrap();
-    static ref STRING_LITERAL: Regex = Regex::new(r#"^"(?s)(.*?)""#).unwrap();
+    static ref STRING_LITERAL: Regex = Regex::new(r#"^\s*"([^"\\]*(?s:\\.[^"\\]*)*)""#).unwrap();
     static ref NUMBER_LITERAL: Regex = Regex::new(r#"^([0-9\.])+"#).unwrap();
     static ref JS_LITERAL: Regex = Regex::new(r"^`(?s)(.*?)`").unwrap();
     static ref JSX_A: Regex = Regex::new(r"^<([A-Za-z0-9]+)(?s:.*?)>").unwrap();
@@ -123,9 +123,20 @@ impl Lexer {
                     let token = Token::Str(cap2.to_string(), self.span(cap1.len()));
                     return Some(self.advance_with_token(cap1.len(), token));
                 }
+                _ if NUMBER_LITERAL.is_match(slice) => {
+                    let caps = NUMBER_LITERAL.captures(slice).unwrap();
+                    let cap1 = &caps[0];
+                    let token = Token::Numeric(cap1.to_string(), self.span(cap1.len()));
+                    return Some(self.advance_with_token(cap1.len(), token));
+                }
                 _ if IDENTIFIER.is_match(slice) => {
                     let cap = &IDENTIFIER.captures(slice).unwrap()[0];
-                    let token = Token::Id(cap.to_string(), self.span(cap.len()));
+                    let span = self.span(cap.len());
+                    let token = match cap {
+                        "return" => Token::Return(span),
+                        "let" => Token::Let(span),
+                        _ => Token::Id(cap.to_string(), span),
+                    };
                     return Some(self.advance_with_token(cap.len(), token));
                 }
                 _ if NEWLINE.is_match(slice) => {

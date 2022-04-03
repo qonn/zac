@@ -5,7 +5,7 @@ use crate::{
 
 use super::{context::ParsingContext, expression};
 
-pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
+pub fn parse(ctx: &mut ParsingContext, caller_is_jsx: bool) -> Option<AST> {
     if let Token::JsxOpen(name, span) = ctx.get_curr_token() {
         let name = name;
         let span_from = span.from;
@@ -22,7 +22,11 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
 
                 if let Token::JsxClose(closed_name, _) = ctx.get_curr_token() {
                     if closed_name == name {
-                        ctx.eat_jsx(TokenKind::JsxClose);
+                        if caller_is_jsx {
+                            ctx.eat_jsx(TokenKind::JsxClose);
+                        } else {
+                            ctx.eat(TokenKind::JsxClose);
+                        }
                     } else {
                         ctx.throw_custom("Unexpected closing tag.");
                     }
@@ -30,7 +34,11 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
             }
             Token::JsxSelfClose(_) => {
                 self_closing = true;
-                ctx.eat_jsx(TokenKind::JsxSelfClose);
+                if caller_is_jsx {
+                    ctx.eat_jsx(TokenKind::JsxSelfClose);
+                } else {
+                    ctx.eat(TokenKind::JsxSelfClose);
+                }
             }
             _ => {
                 ctx.throw_unexpected_token();
@@ -72,6 +80,13 @@ fn parse_attrs(ctx: &mut ParsingContext) -> Vec<AST> {
         ctx.eat(TokenKind::Id);
         ctx.eat(TokenKind::Eq);
 
+        let mut expecting_rbrace = false;
+
+        if ctx.get_curr_token().kind() == TokenKind::LBrace {
+            ctx.eat(TokenKind::LBrace);
+            expecting_rbrace = true;
+        }
+
         if let Some(expr) = expression::parse(ctx) {
             let span_to = ctx.get_prev_token().span().from;
 
@@ -80,6 +95,10 @@ fn parse_attrs(ctx: &mut ParsingContext) -> Vec<AST> {
                 expr: Box::new(expr),
                 span: SourceSpan::new(span_from, span_to),
             })
+        }
+
+        if expecting_rbrace {
+            ctx.eat(TokenKind::RBrace);
         }
     }
 
@@ -94,12 +113,14 @@ fn parse_children(ctx: &mut ParsingContext) -> Vec<AST> {
             break;
         }
 
+        ctx.eat_all_newlines_jsx();
+
         if let Some(token) = expression::parse(ctx) {
             children.push(token);
         }
 
         if let TokenKind::JsxOpen = TokenKind::from(ctx.get_curr_token()) {
-            if let Some(token) = parse(ctx) {
+            if let Some(token) = parse(ctx, true) {
                 children.push(token);
             }
         }

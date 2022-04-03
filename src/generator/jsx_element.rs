@@ -29,7 +29,7 @@ fn generate_children(children: &[AST]) -> String {
         .iter()
         .map(|child| match ASTKind::from(child) {
             ASTKind::JsxElement => generate(child),
-            ASTKind::StringLiteral => string_literal::generate(child, true),
+            ASTKind::StringLiteral => string_literal::generate(child, true, false),
             _ => panic!("jsx_element: Unexpected child AST Node {child:#?}"),
         })
         .collect::<Vec<String>>()

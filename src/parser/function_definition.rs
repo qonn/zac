@@ -5,7 +5,7 @@ use crate::{
 
 use super::{context::ParsingContext, identifier, statement};
 
-pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
+pub fn parse(ctx: &mut ParsingContext) -> AST {
     let span_from = ctx.get_curr_token().span().from;
 
     ctx.eat(TokenKind::Id); // the 'fn' keyword
@@ -28,12 +28,12 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
 
     let span_to = ctx.get_curr_token().span().from;
 
-    Some(AST::FunctionDefinition {
+    AST::FunctionDefinition {
         name,
         args,
         body,
         span: SourceSpan::new(span_from, span_to),
-    })
+    }
 }
 
 fn parse_args(ctx: &mut ParsingContext) -> Vec<AST> {
@@ -55,7 +55,7 @@ fn parse_args(ctx: &mut ParsingContext) -> Vec<AST> {
 
         ctx.eat(TokenKind::DblColon);
 
-        let type_ = Box::new(identifier::parse_non_reserved_keywords(ctx, true).unwrap());
+        let type_ = Box::new(identifier::parse_non_reserved_keywords(ctx, true));
 
         let span_to = ctx.get_curr_token().span().from;
 

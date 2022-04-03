@@ -15,6 +15,7 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     } = ast
     {
         let mut function_scope = scope.clone();
+        function_scope.owner = Some(ast.clone());
         check_name(ctx, &mut function_scope, name, span);
         check_args(ctx, &mut function_scope, args);
         check_body(ctx, &mut function_scope, body);

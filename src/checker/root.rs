@@ -84,7 +84,7 @@ pub fn check_children(ctx: &mut CheckingContext, scope: &mut Scope, body: &Vec<A
                 kind: _,
                 span: _,
             } => {}
-            AST::VariableDeclaration {
+            AST::VariableStatement {
                 name,
                 value: _,
                 span: _,
@@ -137,6 +137,7 @@ pub fn check_children(ctx: &mut CheckingContext, scope: &mut Scope, body: &Vec<A
                 generics,
                 span,
             } => {}
+            AST::ReturnStatement { expr, span } => todo!(),
         }
     }
 }

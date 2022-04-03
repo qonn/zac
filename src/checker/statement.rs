@@ -1,6 +1,6 @@
 use super::{
-    binary_expression, context::CheckingContext, function_call, if_statement, jsx_element,
-    literal, variable_declaration,
+    binary_expression, context::CheckingContext, function_call, if_statement, jsx_element, literal,
+    return_statement, variable_declaration,
 };
 use crate::{
     ast::{ASTKind, AST},
@@ -14,8 +14,9 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
         ASTKind::NumberLiteral => literal::check(ctx, scope, ast),
         ASTKind::IfStatement => if_statement::check(ctx, scope, ast),
         ASTKind::BinaryExpression => binary_expression::check(ctx, scope, ast),
-        ASTKind::VariableDeclaration => variable_declaration::check(ctx, scope, ast),
+        ASTKind::VariableStatement => variable_declaration::check(ctx, scope, ast),
         ASTKind::FunctionCall => function_call::check(ctx, scope, ast),
+        ASTKind::ReturnStatement => return_statement::check(ctx, scope, ast),
         ASTKind::JsxElement => jsx_element::check(ctx, scope, ast),
         _ => {
             let message = format!("Unsupported '{:?}' statement.", ASTKind::from(ast));

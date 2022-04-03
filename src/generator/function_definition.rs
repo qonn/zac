@@ -1,6 +1,6 @@
 use crate::ast::{ASTKind, AST};
 
-use super::{js_literal, jsx_element};
+use super::{js_literal, jsx_element, return_statement};
 
 pub fn generate(ast: &AST) -> String {
     if let AST::FunctionDefinition {
@@ -48,6 +48,7 @@ pub fn generate_body(body: &Vec<AST>) -> String {
         .map(|child| match ASTKind::from(child) {
             ASTKind::JsLiteral => js_literal::generate(child),
             ASTKind::JsxElement => jsx_element::generate(child),
+            ASTKind::ReturnStatement => return_statement::generate(child),
             _ => panic!("Unexpected child AST Node {child:#?}"),
         })
         .collect::<Vec<String>>()

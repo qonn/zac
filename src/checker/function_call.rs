@@ -1,5 +1,5 @@
 use super::{
-    binary_expression, context::CheckingContext, function_definition, identifier,
+    binary_expression, context::CheckingContext, function_definition, identifier, jsx_element,
     type_resolver,
 };
 use crate::{
@@ -22,7 +22,7 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     }
 }
 
-fn resolve_callee<'a>(ctx: &mut CheckingContext, scope: &'a Scope, callee: &AST) -> Option<AST> {
+fn resolve_callee(ctx: &mut CheckingContext, scope: &mut Scope, callee: &AST) -> Option<AST> {
     if let AST::Identifier {
         value,
         generics: _,
@@ -81,6 +81,7 @@ fn check_args(
                 ASTKind::JsLiteral => {}
                 ASTKind::FunctionCall => check(ctx, scope, caller_arg),
                 ASTKind::FunctionDefinition => function_definition::check(ctx, scope, caller_arg),
+                ASTKind::JsxElement => jsx_element::check(ctx, scope, caller_arg),
                 ASTKind::BinaryExpression => binary_expression::check(ctx, scope, caller_arg),
                 _ => {
                     let message = format!("Unexpected function call argument's syntax.");
@@ -96,7 +97,7 @@ fn check_args(
 
 fn check_arg_type(
     ctx: &mut CheckingContext,
-    scope: &Scope,
+    scope: &mut Scope,
     callee: &AST,
     callee_arg: &AST,
     caller: &AST,

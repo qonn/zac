@@ -1,6 +1,6 @@
-use crate::{ast::AST, scope::Scope, token::SourceSpan};
+use crate::{ast::AST, scope::Scope};
 
-use super::{context::CheckingContext, identifier};
+use super::context::CheckingContext;
 
 pub fn check(ctx: &CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::MemberExpression {

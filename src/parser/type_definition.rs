@@ -5,7 +5,7 @@ use crate::{
 
 use super::{context::ParsingContext, identifier, type_variant};
 
-pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
+pub fn parse(ctx: &mut ParsingContext) -> AST {
     ctx.eat(TokenKind::Id); // the 'type' keyword
 
     let token = ctx.get_curr_token();
@@ -19,12 +19,12 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
     let variants = parse_variants(ctx);
     let to = ctx.get_curr_token().span().from;
 
-    Some(AST::TypeDefinition {
+    AST::TypeDefinition {
         name,
         generics,
         variants,
         span: SourceSpan::new(from, to),
-    })
+    }
 }
 
 fn parse_generics(ctx: &mut ParsingContext) -> Vec<AST> {
@@ -39,9 +39,7 @@ fn parse_generics(ctx: &mut ParsingContext) -> Vec<AST> {
                 break;
             }
 
-            if let Some(generic) = identifier::parse(ctx) {
-                generics.push(generic)
-            }
+            generics.push(identifier::parse(ctx));
 
             if let Token::Comma(_) = ctx.get_curr_token() {
                 ctx.eat(TokenKind::Comma);

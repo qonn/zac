@@ -4,8 +4,7 @@ use crate::{
 };
 
 use super::{
-    binary_expression, context::CheckingContext, function_call, identifier, literal,
-    type_resolver,
+    binary_expression, context::CheckingContext, function_call, identifier, literal, type_resolver,
 };
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {

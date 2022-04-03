@@ -1,9 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
-use crate::{ast::AST};
+use crate::ast::AST;
 
 #[derive(Debug, Clone)]
 pub struct Scope {
+    pub owner: Option<AST>,
     pub type_definitions: HashMap<String, AST>,
     pub enum_definitions: HashMap<String, AST>,
     pub records_definitions: HashMap<String, AST>,
@@ -105,6 +106,7 @@ impl Scope {
 
 pub fn new() -> Scope {
     Scope {
+        owner: None,
         type_definitions: HashMap::new(),
         function_definitions: HashMap::new(),
         variable_definitions: HashMap::new(),

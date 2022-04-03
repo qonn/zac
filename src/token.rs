@@ -43,6 +43,8 @@ pub enum Token {
     DblColon(SourceSpan),
     Comma(SourceSpan),
     NewLine(SourceSpan),
+    Return(SourceSpan),
+    Let(SourceSpan),
     Eof(SourceSpan),
 }
 
@@ -74,6 +76,8 @@ impl Token {
             Token::LSqrBr(_) => String::from("["),
             Token::RSqrBr(_) => String::from("]"),
             Token::Dot(_) => String::from("."),
+            Token::Return(_) => String::from("return"),
+            Token::Let(_) => String::from("let"),
         }
     }
 
@@ -104,9 +108,15 @@ impl Token {
             Token::LSqrBr(ss) => ss,
             Token::RSqrBr(ss) => ss,
             Token::Dot(ss) => ss,
+            Token::Return(ss) => ss,
+            Token::Let(ss) => ss,
         };
 
         ss.clone()
+    }
+
+    pub fn kind(&self) -> TokenKind {
+        TokenKind::from(self)
     }
 }
 

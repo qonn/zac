@@ -1,6 +1,6 @@
 use crate::ast::{ASTKind, AST};
 
-use super::{function_call, function_definition};
+use super::{function_call, function_definition, js_literal, variable_statement};
 
 pub fn generate(root_ast: &AST) -> String {
     if let AST::Root { children } = root_ast {
@@ -19,6 +19,8 @@ fn generate_children(children: &[AST]) -> Vec<String> {
             ASTKind::TypeDefinition => {}
             ASTKind::FunctionCall => lines.push(function_call::generate(child)),
             ASTKind::FunctionDefinition => lines.push(function_definition::generate(child)),
+            ASTKind::JsLiteral => lines.push(js_literal::generate(child)),
+            ASTKind::VariableStatement => lines.push(variable_statement::generate(child)),
             _ => panic!("Unexpected AST Node {:#?}", child),
         }
     }
