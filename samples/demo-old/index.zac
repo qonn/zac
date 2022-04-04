@@ -16,7 +16,7 @@ type Result<a, b> {
     Err(b),
 }
 
-type HtmlElement
+type Element
 
 /* builtin functions */
 
@@ -24,7 +24,7 @@ fn print(what: String) {
     return `console.log(what)`
 }
 
-fn render_(node: Fn<HtmlElement>, target: HtmlElement) {
+fn render_(node: Fn<Element>, target: Element) {
     return `render(#{node})`
 }
 

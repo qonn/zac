@@ -54,6 +54,7 @@ fn check_args(
     if let AST::FunctionDefinition {
         name: _,
         body: _,
+        expected_return_type: _,
         args: callee_args,
         span: _,
     } = callee
@@ -109,9 +110,10 @@ fn check_arg_type(
     if let (
         AST::FunctionDefinition {
             name: callee_name,
-            span: _,
+            expected_return_type: _,
             args: _,
             body: _,
+            span: _,
         },
         AST::FunctionArgumentDefinition {
             name: callee_arg_name,

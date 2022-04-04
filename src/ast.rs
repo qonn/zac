@@ -86,6 +86,7 @@ pub enum AST {
     FunctionDefinition {
         name: String,
         args: Vec<AST>,
+        expected_return_type: Option<Box<AST>>,
         body: Vec<AST>,
         span: SourceSpan,
     },
@@ -179,6 +180,7 @@ impl AST {
             AST::FunctionDefinition {
                 name: _,
                 args: _,
+                expected_return_type: _,
                 body: _,
                 span,
             } => span,

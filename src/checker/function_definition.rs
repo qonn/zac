@@ -9,6 +9,7 @@ use super::{context::CheckingContext, identifier, statement};
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::FunctionDefinition {
         name,
+        expected_return_type: _,
         args,
         body,
         span,

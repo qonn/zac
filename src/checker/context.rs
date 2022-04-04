@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{ast::AST, error_message::ErrorMessage, scope::Scope};
+use crate::{error_message::ErrorMessage, scope::Scope};
 
 pub struct CheckingContext {
     pub filepath: String,

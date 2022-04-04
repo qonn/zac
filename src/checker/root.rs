@@ -97,6 +97,7 @@ pub fn check_children(ctx: &mut CheckingContext, scope: &mut Scope, body: &Vec<A
             }
             AST::FunctionDefinition {
                 name: _,
+                expected_return_type: _,
                 args: _,
                 body: _,
                 span: _,

@@ -61,7 +61,7 @@ impl Lexer {
 
     pub fn get_next_token(&mut self, do_not_consume_jsx: bool, inside_jsx: bool) -> Option<Token> {
         let result = self.get_next_token_ex(do_not_consume_jsx, inside_jsx);
-        println!("{:?}", result);
+        // println!("{:?}", result);
         return result;
     }
 

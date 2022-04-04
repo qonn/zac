@@ -1,4 +1,10 @@
-type Boolean = ___
-type String = ___
-type Number = ___
-type Vec<a> = ___
+type String
+type Boolean
+type Number
+type Vec<a>
+type Fn<a>
+type Result<a, b> {
+    Ok(a),
+    Err(b),
+}
+type Element

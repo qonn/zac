@@ -1,6 +1,6 @@
-use crate::ast::{ASTKind, AST};
+use crate::ast::AST;
 
-use super::{expression, jsx_element_attribute, string_literal};
+use super::expression;
 
 pub fn generate(ast: &AST) -> String {
     if let AST::VariableStatement {

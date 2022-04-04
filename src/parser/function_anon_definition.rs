@@ -16,6 +16,15 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
 
     ctx.eat(TokenKind::RParen);
 
+    let expected_return_type;
+
+    if ctx.get_curr_token().kind() == TokenKind::DblColon {
+        ctx.eat(TokenKind::DblColon);
+        expected_return_type = Some(Box::new(identifier::parse_non_reserved_keywords(ctx, true)));
+    } else {
+        expected_return_type = None;
+    }
+
     ctx.eat(TokenKind::LBrace);
 
     let body = parse_body(ctx);
@@ -26,6 +35,7 @@ pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
 
     Some(AST::FunctionDefinition {
         name,
+        expected_return_type,
         args,
         body,
         span: SourceSpan::new(span_from, span_to),

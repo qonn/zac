@@ -6,6 +6,7 @@ pub fn generate(ast: &AST) -> String {
     if let AST::FunctionDefinition {
         name,
         args,
+        expected_return_type: _,
         body,
         span: _,
     } = ast

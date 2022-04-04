@@ -72,6 +72,7 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
         AST::ArrayDeclarator { items: _, span: _ } => "ArrayDeclarator".to_string(),
         AST::FunctionDefinition {
             name,
+            expected_return_type,
             args: _,
             body,
             span: _,
@@ -162,6 +163,7 @@ pub fn resolve_returning_type(ctx: &mut CheckingContext, scope: &Scope, target: 
         AST::FunctionDefinition {
             name,
             args,
+            expected_return_type,
             body,
             span,
         } => format!(

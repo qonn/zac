@@ -1,6 +1,4 @@
-use crate::ast::{ASTKind, AST};
-
-use super::{js_literal, jsx_element, string_literal};
+use crate::ast::AST;
 
 pub fn generate(ast: &AST) -> String {
     match ast {

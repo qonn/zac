@@ -2,6 +2,7 @@ use std::{
     fs::{self, DirEntry},
     io,
     path::Path,
+    time::Instant,
 };
 
 pub mod ast;
@@ -12,6 +13,7 @@ pub mod lexer;
 mod parser;
 pub mod scope;
 pub mod token;
+mod utils;
 
 fn visit_dirs(dir: &Path, cb: &dyn Fn(&DirEntry)) -> io::Result<()> {
     if dir.is_dir() {
@@ -30,13 +32,17 @@ fn visit_dirs(dir: &Path, cb: &dyn Fn(&DirEntry)) -> io::Result<()> {
 
 fn main() {
     println!("");
-    println!("parsing...");
+    println!("compiling...");
 
+    let start = Instant::now();
     let _ = visit_dirs(Path::new("./samples"), &|d| {
-        let filepath = d.path().to_string_lossy().to_string();
+        let filepath = crate::utils::normalize_path(&d.path())
+            .to_string_lossy()
+            .to_string();
+
         if !filepath.contains(".zac") {
         } else {
-            println!("parsing {}", filepath);
+            println!("compiling {}", filepath);
             let content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
             let mut lexer = lexer::new(&filepath, &content);
             let ast = parser::parse(&mut lexer);
@@ -44,6 +50,6 @@ fn main() {
             generator::generate(filepath, &ast)
         }
     });
-
-    println!("successfully parse everything!");
+    let duration = start.elapsed();
+    println!("compilation done in {duration:?}");
 }

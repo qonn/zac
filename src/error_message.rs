@@ -74,6 +74,7 @@ impl ErrorMessage {
         let partial_content = partial_content.join("\n");
 
         println!("");
+        println!("\x1b[91mError\x1b[0m: {}", self.message);
         println!(
             "{}:{}:{}",
             self.filepath, current_line_number_as_string, current_line_column
@@ -81,9 +82,6 @@ impl ErrorMessage {
         println!("");
         println!("{}", partial_content);
         println!("      | ");
-        println!("");
-
-        println!("\x1b[91mError\x1b[0m: {}", self.message);
         println!("");
     }
 
