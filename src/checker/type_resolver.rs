@@ -89,11 +89,16 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
         AST::FunctionDefinition {
             name,
             expected_return_type,
-            args: _,
+            args,
             body,
             span: _,
         } => {
             let scope = ctx.get_scope(name).unwrap().clone();
+
+            let mut types = args
+                .iter()
+                .map(|arg| resolve(ctx, &scope, arg))
+                .collect::<Vec<_>>();
 
             let expected_return_type = if let Some(expected_return_type) = expected_return_type {
                 resolve(ctx, &scope, expected_return_type)
@@ -109,7 +114,11 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
                 )
             };
 
-            format!("Fn<{expected_return_type}>")
+            types.push(expected_return_type);
+
+            let types = types.join(",");
+
+            format!("Fn<{types}>")
         }
         AST::FunctionArgumentDefinition {
             name: _,
