@@ -1,0 +1,4 @@
+enum Option<value> {
+    Some(value),
+    None
+}

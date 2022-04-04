@@ -91,7 +91,7 @@ fn check_args(
                 }
             }
 
-            check_arg_type(ctx, scope, callee, callee_arg, caller, caller_arg);
+            check_arg_type(ctx, scope, callee, callee_arg, caller_arg);
         }
     }
 }
@@ -101,7 +101,6 @@ fn check_arg_type(
     scope: &mut Scope,
     callee: &AST,
     callee_arg: &AST,
-    caller: &AST,
     caller_arg: &AST,
 ) {
     let resolved_callee_arg = type_resolver::resolve(ctx, scope, callee_arg);

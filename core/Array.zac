@@ -1,0 +1,12 @@
+mod Array
+
+fn nth(arr: Array<a>, idx: Number): Option<a> {
+    let item = `arr[idx]`
+    let is_item_exist = `!!item ? true : false`
+
+    if is_item_exist {
+        return .Some(item)
+    }
+
+    return .None
+}

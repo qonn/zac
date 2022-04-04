@@ -1,4 +1,4 @@
-use super::context::CheckingContext;
+use super::{context::CheckingContext, function_definition, type_resolver};
 use crate::{
     ast::{ASTKind, AST},
     scope::Scope,
@@ -21,12 +21,21 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
 }
 fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &SourceSpan) {
     if !scope.is_defined(name) && !is_reserved_name(name) {
-        let message = format!(
-            "This JSX Element '{:?}' used here could not be found.",
-            name
-        );
+        let message = format!("This JSX Element '{}' used here could not be found.", name);
         let pos = span.from;
         ctx.print_error_message(message, pos);
+    }
+
+    if let Some(t) = scope.find_definition(name) {
+        let resolved_type = function_definition::resolve_returning_type(ctx, scope, t);
+        if resolved_type != "Element" {
+            let message = format!(
+                "This JSX Element '{}' used here is not a valid JSX Element",
+                name
+            );
+            let pos = span.from;
+            ctx.print_error_message(message, pos);
+        }
     }
 }
 

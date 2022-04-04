@@ -12,8 +12,13 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
             generics,
             span: _,
         } => {
-            let found_definition = scope.find_definition(value).unwrap();
-            let name = resolve(ctx, scope, found_definition);
+            let found_definition = scope.find_definition(value);
+            let name = if let Some(found_definition) = found_definition {
+                resolve(ctx, scope, found_definition)
+            } else {
+                value.to_string()
+            };
+
             let mut generic_names = vec![];
             let mut generics_iter = generics.iter();
 
@@ -69,7 +74,18 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
             value,
             span: _,
         } => resolve(ctx, scope, &value[0]),
-        AST::ArrayDeclarator { items: _, span: _ } => "ArrayDeclarator".to_string(),
+        AST::ArrayDeclarator { items, span: _ } => {
+            let mut items_type = items
+                .iter()
+                .map(|x| resolve(ctx, scope, x))
+                .collect::<Vec<_>>();
+
+            items_type.dedup();
+
+            let items_type = items_type.join(",");
+
+            format!("Vec<{}>", items_type)
+        }
         AST::FunctionDefinition {
             name,
             expected_return_type,
@@ -79,8 +95,9 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
         } => {
             let scope = ctx.get_scope(name).unwrap().clone();
 
-            format!(
-                "Fn<{}>",
+            let expected_return_type = if let Some(expected_return_type) = expected_return_type {
+                resolve(ctx, &scope, expected_return_type)
+            } else {
                 resolve(
                     ctx,
                     &scope,
@@ -88,9 +105,11 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
                         value: "Unit".into(),
                         generics: vec![],
                         span: SourceSpan::empty(),
-                    })
-                ),
-            )
+                    }),
+                )
+            };
+
+            format!("Fn<{expected_return_type}>")
         }
         AST::FunctionArgumentDefinition {
             name: _,

@@ -1,0 +1,9 @@
+mod String
+
+fn len(str: String): Number {
+    return `str.length`
+}
+
+fn concat(str1: String, str2: String): String {
+    return "#{str1}#{str2}"
+}

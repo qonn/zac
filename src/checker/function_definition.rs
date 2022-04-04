@@ -1,10 +1,6 @@
-use crate::{
-    ast::{ASTKind, AST},
-    scope::Scope,
-    token::SourceSpan,
-};
+use crate::{ast::AST, scope::Scope, token::SourceSpan};
 
-use super::{context::CheckingContext, identifier, statement};
+use super::{context::CheckingContext, statement, type_resolver::resolve};
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     if let AST::FunctionDefinition {
@@ -45,11 +41,10 @@ fn check_args(ctx: &mut CheckingContext, scope: &mut Scope, args: &Vec<AST>) {
         match arg {
             AST::FunctionArgumentDefinition {
                 name,
-                type_: kind,
+                type_: _,
                 span,
             } => {
                 check_arg_name(ctx, scope, name, &mut defined_names, arg, span);
-                check_arg_kind(ctx, scope, kind);
                 scope.clear_definition_for(name);
                 scope.add_variable_definition(name, arg);
             }
@@ -80,22 +75,36 @@ fn check_arg_name(
     scope.add_variable_definition(name, ast);
 }
 
-fn check_arg_kind(ctx: &mut CheckingContext, scope: &mut Scope, kind: &AST) {
-    match ASTKind::from(kind) {
-        ASTKind::Identifier => identifier::check(ctx, scope, kind),
-        _ => {
-            let message = format!("Unexpected function argument definition type.");
-            let pos = kind.source_span().from;
-            ctx.print_error_message(message, pos);
-        }
-    }
-}
-
 fn check_body(ctx: &mut CheckingContext, scope: &mut Scope, body: &Vec<AST>) {
     let mut body = body.iter();
     let scope = &mut scope.clone();
 
     while let Some(body) = body.next() {
         statement::check(ctx, scope, body);
+    }
+}
+
+pub fn resolve_returning_type(ctx: &mut CheckingContext, scope: &Scope, function: &AST) -> String {
+    let default_return_type = &AST::Identifier {
+        value: "Unit".into(),
+        generics: vec![],
+        span: SourceSpan::empty(),
+    };
+
+    if let AST::FunctionDefinition {
+        name: _,
+        args: _,
+        expected_return_type,
+        body,
+        span: _,
+    } = function
+    {
+        if let Some(expected_return_type) = expected_return_type {
+            resolve(ctx, scope, expected_return_type)
+        } else {
+            resolve(ctx, &scope, body.last().unwrap_or(default_return_type))
+        }
+    } else {
+        resolve(ctx, scope, default_return_type)
     }
 }

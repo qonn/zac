@@ -4,17 +4,6 @@
 `import { Hello } from './components/Hello.jsx'`
 
 /* builtin types */
-type String
-type Boolean
-type Number
-type Vec<a>
-type Fn<a>
-type Result<a, b> {
-    Ok(a),
-    Err(b),
-}
-type Element
-/* builtin types */
 
 let comments = [
     "Hey! This is the first comment.",
@@ -22,20 +11,21 @@ let comments = [
 ]
 
 fn App() {
-    return <div>
-    <Helmet>
-      <title>Nano JSX SSR</title>
-      <meta name="description" content="Server Side Rendered Nano JSX Application" />
-    </Helmet>
+    return
+    <div>
+      <Helmet>
+        <title>Nano JSX SSR</title>
+        <meta name="description" content="Server Side Rendered Nano JSX Application" />
+      </Helmet>
 
-    <Hello />
+      <Hello />
 
-    <h2>Comments</h2>
+      <h2>Comments</h2>
 
-    <div id="comments">
-      <Comments comments={comments} />
+      <div id="comments">
+        <Comments comments={comments} />
+      </div>
     </div>
-  </div>
 }
 
 fn renderSSR_(node: Element) {
@@ -75,9 +65,7 @@ router.get('/', (context) => {
 })
 `
 
-type Application
-
-fn Application_() {
+fn Application_(): Application {
     return `new Application()`
 }
 
