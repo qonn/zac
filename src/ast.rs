@@ -413,6 +413,7 @@ pub enum FnStmt {
     LitJs(LitJs),
     If(If),
     Ret(Return),
+    Noop,
 }
 
 #[derive(Debug, Clone)]

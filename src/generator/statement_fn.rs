@@ -45,6 +45,7 @@ pub fn generate_body(ctx: &mut context::Context, body: &Vec<ast::FnStmt>) -> Str
             ast::FnStmt::LitJs(v) => literal_js::generate(ctx, v),
             ast::FnStmt::If(v) => statement_if::generate(ctx, v),
             ast::FnStmt::Ret(v) => statement_return::generate(ctx, v),
+            ast::FnStmt::Noop => "".to_string(),
         })
         .collect::<Vec<String>>()
         .join("\n")

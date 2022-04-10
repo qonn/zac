@@ -137,6 +137,7 @@ fn parse_statement(ctx: &mut ParsingContext) -> ast::FnStmt {
         TokenKind::If => ast::FnStmt::If(statement_if::parse(ctx)),
         TokenKind::Return => ast::FnStmt::Ret(statement_return::parse(ctx)),
         TokenKind::Js => ast::FnStmt::LitJs(literal_js::parse(ctx)),
+        TokenKind::NewLine => ast::FnStmt::Noop,
         _ => {
             ctx.throw_unexpected_token();
             panic!()
