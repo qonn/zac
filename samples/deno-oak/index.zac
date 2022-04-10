@@ -34,10 +34,12 @@ mod Utils {
     }
 }
 
+let port = 5000
+
 App.new()
     .use((ctx: AppContext) {
         ctx.get_response().set_body("Hello World")
     })
-    .listen(5000)
+    .listen(port)
     .await
-    .log("wow this logs after app listen to port 5000")
+    .log("wow this logs after app listen to port #{port}")
