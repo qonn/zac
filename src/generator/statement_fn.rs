@@ -14,12 +14,14 @@ pub fn generate(ctx: &mut context::Context, ast: &ast::Fn) -> String {
 
     ctx.add_fn(&id, ast);
 
-    format!(
-        "function {}({}) {{{}}}",
-        id,
-        generate_args(ctx, &ast.args),
-        generate_body(ctx, &ast.stmts)
-    )
+    let args = generate_args(ctx, &ast.args);
+    let stmts = generate_body(ctx, &ast.stmts);
+
+    if !ast.anonymous {
+        format!("function {}({}) {{{}}}", id, args, stmts,)
+    } else {
+        format!("({}) => {{{}}}", args, stmts)
+    }
 }
 
 pub fn generate_args(ctx: &mut context::Context, args: &Vec<ast::FnArg>) -> String {
