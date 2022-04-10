@@ -13,8 +13,6 @@ pub fn generate(ctx: &mut context::Context, ast: &ast::MemberAccess) -> String {
 
     resolve_types(ctx, &mut results, &mut results2);
 
-    println!("{results2:#?}");
-
     let results = results
         .iter()
         .map(|(a, b, c)| (a.join("."), b, c))
