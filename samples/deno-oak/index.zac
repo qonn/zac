@@ -15,14 +15,14 @@ mod App {
     }
 }
 
-mod AppContext {
-    fn get_response(ctx: AppContext): AppResponse {
+mod App.Context {
+    fn get_response(ctx: App.Context): App.Response {
         return `ctx.response`
     }
 }
 
-mod AppResponse {
-    fn set_body(res: AppResponse, str: String): AppResponse {
+mod App.Response {
+    fn set_body(res: App.Response, str: String): App.Response {
         `res.body = str`
         return res
     }
@@ -38,7 +38,7 @@ let port = 5000
 
 App
     .new()
-    .use((ctx: AppContext) {
+    .use((ctx: App.Context) {
         ctx
             .get_response()
             .set_body("Hello World")

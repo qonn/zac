@@ -536,3 +536,14 @@ impl Spanned for MemberAccess {
         self.span.clone()
     }
 }
+impl Ident {
+    pub fn concat(&self, other: Ident) -> Ident {
+        let string = vec![self.string.clone(), other.string.clone()].join(".");
+
+        Ident {
+            string,
+            generics: other.generics,
+            span: Span::new(self.span.from, other.span.to),
+        }
+    }
+}

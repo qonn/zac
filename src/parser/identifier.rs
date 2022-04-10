@@ -19,13 +19,14 @@ pub fn parse(ctx: &mut ParsingContext) -> ast::Ident {
     }
 
     let span = current_token.span().clone();
+    let string = current_token.value();
 
     ctx.eat_without_consuming_jsx(TokenKind::Id);
 
     let generics = parse_generics(ctx);
 
     let identifier = ast::Ident {
-        string: current_token.value(),
+        string,
         generics,
         span,
     };

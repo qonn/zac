@@ -39,7 +39,16 @@ pub fn parse(ctx: &mut ParsingContext, anonymous: bool) -> ast::Fn {
 
     if ctx.get_curr_token().kind() == TokenKind::DblColon {
         ctx.eat(TokenKind::DblColon);
-        output = ast::Type::Ident(identifier::parse(ctx));
+
+        let mut id = identifier::parse(ctx);
+
+        while ctx.get_curr_token().kind() == TokenKind::Dot {
+            ctx.eat(TokenKind::Dot);
+            let id_part = identifier::parse(ctx);
+            id = id.concat(id_part);
+        }
+
+        output = ast::Type::Ident(id)
     } else {
         output = ast::Type::Default;
     }
@@ -80,7 +89,15 @@ fn parse_args(ctx: &mut ParsingContext) -> Vec<ast::FnArg> {
 
         let input = if ctx.get_curr_token().kind() == TokenKind::DblColon {
             ctx.eat(TokenKind::DblColon);
-            ast::Type::Ident(identifier::parse(ctx))
+            let mut id = identifier::parse(ctx);
+
+            while ctx.get_curr_token().kind() == TokenKind::Dot {
+                ctx.eat(TokenKind::Dot);
+                let id_part = identifier::parse(ctx);
+                id = id.concat(id_part);
+            }
+
+            ast::Type::Ident(id)
         } else {
             ast::Type::Default
         };
@@ -92,6 +109,14 @@ fn parse_args(ctx: &mut ParsingContext) -> Vec<ast::FnArg> {
             id,
             input,
         });
+
+        if !(ctx.get_curr_token().kind() == TokenKind::Comma
+            || ctx.get_curr_token().kind() == TokenKind::RParen)
+        {
+            ctx.throw_custom(
+                "Unexpected token while parsing arguments variable, It needs to be either ',' or ')'.",
+            );
+        }
 
         if let Token::Comma(_) = ctx.get_curr_token() {
             ctx.eat(TokenKind::Comma);
