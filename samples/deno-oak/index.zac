@@ -39,7 +39,9 @@ let port = 5000
 App
     .new()
     .use((ctx: AppContext) {
-        ctx.get_response().set_body("Hello World")
+        ctx
+            .get_response()
+            .set_body("Hello World")
     })
     .listen(port)
     .await

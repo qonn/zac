@@ -123,6 +123,10 @@ fn parse_statement(ctx: &mut ParsingContext) -> ast::FnStmt {
         TokenKind::Id => {
             let id = identifier::parse(ctx);
 
+            if ctx.peek_ahead_ignoring_newlines().kind() == TokenKind::Dot {
+                ctx.eat_all_newlines();
+            }
+
             match ctx.get_curr_token().kind() {
                 TokenKind::LBrace => ast::FnStmt::FnCall(function_call::parse(ctx, id)),
                 TokenKind::Dot => {
