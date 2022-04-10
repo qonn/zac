@@ -1,8 +1,8 @@
 use crate::{ast, token::TokenKind};
 
 use super::{
-    context::ParsingContext, expression, function, function_call, identifier, literal_js,
-    member_access, statement_let, statement_module, statement_return,
+    context::ParsingContext, function, function_call, identifier, literal_js, member_access,
+    statement_let, statement_module, statement_return,
 };
 
 pub fn parse(ctx: &mut ParsingContext) -> ast::Stmt {

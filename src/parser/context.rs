@@ -1,6 +1,5 @@
 use crate::error_message::ErrorMessage;
 use crate::lexer::Lexer;
-use crate::span::Span;
 use crate::token::{Token, TokenKind};
 pub struct ParsingContext<'l> {
     pub lexer: &'l mut Lexer,
