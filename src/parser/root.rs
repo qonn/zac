@@ -1,15 +1,18 @@
-use crate::ast::AST;
+use crate::{ast, span::Span};
 
 use super::{context::ParsingContext, statement};
 
-pub fn parse(ctx: &mut ParsingContext) -> AST {
-    let mut children = vec![];
+pub fn parse(ctx: &mut ParsingContext) -> ast::Root {
+    let mut stmts = vec![];
 
     while ctx.is_not_eof() {
-        if let Some(child) = statement::parse(ctx) {
-            children.push(child);
-        }
+        stmts.push(statement::parse(ctx));
     }
 
-    AST::Root { children }
+    ast::Root {
+        name: ctx.lexer.filepath.clone(),
+        path: ctx.lexer.filepath.clone(),
+        stmts,
+        span: Span::new(0, ctx.lexer.len),
+    }
 }

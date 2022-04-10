@@ -20,7 +20,7 @@ pub fn check(ctx: &CheckingContext, scope: &mut Scope, kind: &AST) {
         }
         _ => {
             let message = format!("Invalid AST Node '{:?}'", crate::ast::ASTKind::from(kind));
-            let pos = kind.source_span().from;
+            let pos = kind.span().from;
             ctx.print_error_message(message, pos);
         }
     }

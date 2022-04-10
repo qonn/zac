@@ -1,59 +1,53 @@
 use strum_macros::EnumDiscriminants;
 
-#[derive(Debug, Clone)]
-pub struct SourceSpan {
-    pub from: usize,
-    pub to: usize,
-}
-
-impl SourceSpan {
-    pub fn new(from: usize, to: usize) -> SourceSpan {
-        SourceSpan { from, to }
-    }
-
-    pub fn empty() -> SourceSpan {
-        SourceSpan { from: 0, to: 0 }
-    }
-}
+use crate::span::Span;
 
 #[derive(Clone, Debug, EnumDiscriminants)]
 #[strum_discriminants(name(TokenKind))]
 pub enum Token {
-    Id(String, SourceSpan),
-    Str(String, SourceSpan),
-    Numeric(String, SourceSpan),
-    Js(String, SourceSpan),
-    JsxOpen(String, SourceSpan),
-    JsxSelfClose(SourceSpan),
-    JsxClose(String, SourceSpan),
-    Plus(SourceSpan),
-    Minus(SourceSpan),
-    Divide(SourceSpan),
-    Multiply(SourceSpan),
-    Dot(SourceSpan),
-    Eq(SourceSpan),
-    LParen(SourceSpan),
-    RParen(SourceSpan),
-    LBrace(SourceSpan),
-    RBrace(SourceSpan),
-    LSqrBr(SourceSpan),
-    RSqrBr(SourceSpan),
-    Gt(SourceSpan),
-    Lt(SourceSpan),
-    DblColon(SourceSpan),
-    Comma(SourceSpan),
-    NewLine(SourceSpan),
-    Return(SourceSpan),
-    Let(SourceSpan),
-    Eof(SourceSpan),
+    Mod(Span),
+    If(Span),
+    Fn(Span),
+    Id(String, Span),
+    Str(String, Span),
+    Numeric(String, Span),
+    Boolean(String, Span),
+    Js(String, Span),
+    JsxOpen(String, Span),
+    JsxSelfClose(Span),
+    JsxClose(String, Span),
+    Plus(Span),
+    Minus(Span),
+    Divide(Span),
+    Multiply(Span),
+    Dot(Span),
+    Eq(Span),
+    LParen(Span),
+    RParen(Span),
+    LBrace(Span),
+    RBrace(Span),
+    LSqrBr(Span),
+    RSqrBr(Span),
+    Gt(Span),
+    Lt(Span),
+    DblColon(Span),
+    Comma(Span),
+    NewLine(Span),
+    Return(Span),
+    Let(Span),
+    Eof(Span),
 }
 
 impl Token {
     pub fn value(&self) -> String {
         match self {
+            Token::Mod(_) => String::from("mod"),
+            Token::If(_) => String::from("if"),
+            Token::Fn(_) => String::from("fn"),
             Token::Id(v, _) => v.clone(),
             Token::Str(v, _) => v.clone(),
             Token::Numeric(v, _) => v.clone(),
+            Token::Boolean(v, _) => v.clone(),
             Token::Js(v, _) => v.clone(),
             Token::JsxOpen(v, _) => v.clone(),
             Token::JsxSelfClose(_) => String::from("/>"),
@@ -81,38 +75,42 @@ impl Token {
         }
     }
 
-    pub fn span(&self) -> SourceSpan {
-        let ss = match self {
-            Token::Id(_, ss) => ss,
-            Token::Str(_, ss) => ss,
-            Token::Numeric(_, ss) => ss,
-            Token::Js(_, ss) => ss,
-            Token::JsxOpen(_, ss) => ss,
-            Token::JsxSelfClose(ss) => ss,
-            Token::JsxClose(_, ss) => ss,
-            Token::Plus(ss) => ss,
-            Token::Minus(ss) => ss,
-            Token::Divide(ss) => ss,
-            Token::Multiply(ss) => ss,
-            Token::Eq(ss) => ss,
-            Token::LParen(ss) => ss,
-            Token::RParen(ss) => ss,
-            Token::LBrace(ss) => ss,
-            Token::RBrace(ss) => ss,
-            Token::Gt(ss) => ss,
-            Token::Lt(ss) => ss,
-            Token::DblColon(ss) => ss,
-            Token::Comma(ss) => ss,
-            Token::NewLine(ss) => ss,
-            Token::Eof(ss) => ss,
-            Token::LSqrBr(ss) => ss,
-            Token::RSqrBr(ss) => ss,
-            Token::Dot(ss) => ss,
-            Token::Return(ss) => ss,
-            Token::Let(ss) => ss,
+    pub fn span(&self) -> Span {
+        let s = match self {
+            Token::Mod(s) => s,
+            Token::Fn(s) => s,
+            Token::If(s) => s,
+            Token::Id(_, s) => s,
+            Token::Str(_, s) => s,
+            Token::Numeric(_, s) => s,
+            Token::Boolean(_, s) => s,
+            Token::Js(_, s) => s,
+            Token::JsxOpen(_, s) => s,
+            Token::JsxSelfClose(s) => s,
+            Token::JsxClose(_, s) => s,
+            Token::Plus(s) => s,
+            Token::Minus(s) => s,
+            Token::Divide(s) => s,
+            Token::Multiply(s) => s,
+            Token::Eq(s) => s,
+            Token::LParen(s) => s,
+            Token::RParen(s) => s,
+            Token::LBrace(s) => s,
+            Token::RBrace(s) => s,
+            Token::Gt(s) => s,
+            Token::Lt(s) => s,
+            Token::DblColon(s) => s,
+            Token::Comma(s) => s,
+            Token::NewLine(s) => s,
+            Token::Eof(s) => s,
+            Token::LSqrBr(s) => s,
+            Token::RSqrBr(s) => s,
+            Token::Dot(s) => s,
+            Token::Return(s) => s,
+            Token::Let(s) => s,
         };
 
-        ss.clone()
+        s.clone()
     }
 
     pub fn kind(&self) -> TokenKind {
@@ -122,6 +120,6 @@ impl Token {
 
 impl Default for Token {
     fn default() -> Self {
-        Token::Eof(SourceSpan::new(0, 0))
+        Token::Eof(Span::new(0, 0))
     }
 }

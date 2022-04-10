@@ -1,4 +1,4 @@
-use crate::{ast::AST, scope::Scope, token::SourceSpan};
+use crate::{ast::AST, scope::Scope, token::Span};
 
 use super::{context::CheckingContext, identifier};
 
@@ -20,14 +20,14 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     }
 }
 
-pub fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &SourceSpan) {
+pub fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &Span) {
     if let Some(other) = scope.get_type_definition(name) {
         let message = format!("The type '{}' has been previously defined.", name);
         let pos = span.from;
         ctx.print_error_message(message, pos);
 
         let message = format!("It was previously defined here.");
-        let pos = other.source_span().from;
+        let pos = other.span().from;
         ctx.print_error_message(message, pos);
 
         panic!();
@@ -60,7 +60,7 @@ pub fn check_variants(
         } => check_variant(ctx, scope, type_definition_generics, name, generics),
         _ => {
             let message = format!("Unsupported type definition syntax.");
-            let pos = item.source_span().from;
+            let pos = item.span().from;
             ctx.print_error_message(message, pos);
         }
     }

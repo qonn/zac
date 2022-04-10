@@ -1,4 +1,4 @@
-use crate::{ast::AST, scope::Scope, token::SourceSpan};
+use crate::{ast::AST, scope::Scope, token::Span};
 
 use super::{context::CheckingContext, identifier};
 
@@ -32,14 +32,14 @@ fn define_generics_in_scope(generics: &Vec<AST>, scope: &mut Scope) {
     }
 }
 
-pub fn check_name(ctx: &CheckingContext, span: &SourceSpan, scope: &mut Scope, name: &String) {
+pub fn check_name(ctx: &CheckingContext, span: &Span, scope: &mut Scope, name: &String) {
     if let Some(other) = scope.find_definition(name) {
         let message = format!("This enum name '{}' has been previously defined.", name);
         let pos = span.from;
         ctx.print_error_message(message, pos);
 
         let message = format!("It was previously defined here.");
-        let pos = other.source_span().from;
+        let pos = other.span().from;
         ctx.print_error_message(message, pos);
 
         panic!();
@@ -75,7 +75,7 @@ pub fn check_item(ctx: &CheckingContext, scope: &mut Scope, item: &AST) {
                 "Unexpected enum's item type '{:?}'.",
                 crate::ast::ASTKind::from(item)
             );
-            let pos = item.source_span().from;
+            let pos = item.span().from;
             ctx.print_error_message(message, pos);
         }
     }

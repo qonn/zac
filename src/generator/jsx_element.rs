@@ -1,35 +1,26 @@
-use crate::ast::{ASTKind, AST};
+use crate::ast;
 
-use super::{jsx_element_attribute, string_literal};
+use super::context;
+use super::{jsx_element_attribute, literal_string};
 
-pub fn generate(ast: &AST) -> String {
-    if let AST::JsxElement {
-        name,
-        attrs,
-        children,
-        self_closing,
-        span: _,
-    } = ast
-    {
-        let attrs = generate_attrs(attrs);
+pub fn generate(ctx: &mut context::Context, ast: &ast::JsxElement) -> String {
+    let name = ast.name.clone();
+    let attrs = generate_attrs(ctx, &ast.attrs);
 
-        if !self_closing {
-            let children = generate_children(children);
-            format!("<{name}{attrs}>{children}</{name}>")
-        } else {
-            format!("<{name}{attrs} />")
-        }
+    if !ast.self_closing {
+        let children = generate_children(ctx, &ast.children);
+        format!("<{name}{attrs}>{children}</{name}>")
     } else {
-        "".into()
+        format!("<{name}{attrs} />")
     }
 }
 
-fn generate_children(children: &[AST]) -> String {
+fn generate_children(ctx: &mut context::Context, children: &Vec<ast::Expr>) -> String {
     let children = children
         .iter()
-        .map(|child| match ASTKind::from(child) {
-            ASTKind::JsxElement => generate(child),
-            ASTKind::StringLiteral => string_literal::generate(child, true, false),
+        .map(|child| match child {
+            ast::Expr::JsxElement(v) => generate(ctx, v),
+            ast::Expr::LitString(v) => literal_string::generate(ctx, v, true, false),
             _ => panic!("jsx_element: Unexpected child AST Node {child:#?}"),
         })
         .collect::<Vec<String>>()
@@ -42,13 +33,10 @@ fn generate_children(children: &[AST]) -> String {
     format!("\n{children}\n")
 }
 
-fn generate_attrs(attrs: &[AST]) -> String {
+fn generate_attrs(ctx: &mut context::Context, attrs: &Vec<ast::JsxElementAttribute>) -> String {
     let attrs = attrs
         .iter()
-        .map(|attr| match ASTKind::from(attr) {
-            ASTKind::JsxElementAttribute => jsx_element_attribute::generate(attr),
-            _ => panic!("jsx_element.generate_attrs: Unexpected child AST Node {attr:#?}"),
-        })
+        .map(|attr| jsx_element_attribute::generate(ctx, attr))
         .collect::<Vec<String>>()
         .join(" ")
         .trim()

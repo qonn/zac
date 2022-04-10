@@ -1,0 +1,47 @@
+`import { Router } from './deps.jsx'`
+
+mod Express.Router {
+    fn new(): Router {
+        return `new Router()`
+    }
+
+    fn get(router: Router, path: String, callback: Fn<Context, Unit>): Router {
+        `router.get(path, callback)`
+        return router
+    }
+
+    fn post(router: Router, path: String, callback: Fn<Context, Unit>): Router {
+        `router.post(path, callback)`
+        return router
+    }
+}
+
+mod Fetch {
+    fn new(url: String) : Promise<Response> {
+        return `fetch(url)`
+    }
+}
+
+mod Response {
+    fn json(res: Response) : Promise<String> {
+        return `res.json()`
+    }
+}
+
+let router =
+    Express
+    .Router
+    .new()
+    .get("/", (context: Context): Unit {
+        `context.response.body = html`
+    })
+    .post("/test", (context: Context): Unit {
+        `context.response.body = html`
+    })
+
+let json =
+    Fetch
+    .new("http://www.example.com")
+    .await
+    .json()
+    .await

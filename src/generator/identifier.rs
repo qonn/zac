@@ -1,12 +1,5 @@
-use crate::ast::AST;
+use crate::ast;
 
-pub fn generate(ast: &AST) -> String {
-    match ast {
-        AST::Identifier {
-            value,
-            generics: _,
-            span: _,
-        } => value.to_string(),
-        _ => panic!("identifier.generate: Unexpected AST Node {ast:#?}"),
-    }
+pub fn generate(ast: &ast::Ident) -> String {
+    ast.string.to_string()
 }

@@ -1,29 +1,35 @@
-use crate::ast::{ASTKind, AST};
+use crate::ast;
 
-use super::{function_call, function_definition, js_literal, variable_statement};
+use super::{
+    context, fn_call, literal_js, member_access, statement_fn, statement_let, statement_mod,
+    statement_return,
+};
 
-pub fn generate(root_ast: &AST) -> String {
-    if let AST::Root { children } = root_ast {
-        generate_children(children).join("\n\n").trim().to_string()
-    } else {
-        "".into()
-    }
+pub fn generate(ctx: &mut context::Context, root_ast: &ast::Root) -> String {
+    generate_statements(ctx, &root_ast.stmts)
+        .join("\n\n")
+        .trim()
+        .to_string()
 }
 
-fn generate_children(children: &[AST]) -> Vec<String> {
-    let mut lines = vec![];
-    let mut children_iter = children.iter();
-
-    while let Some(child) = children_iter.next() {
-        match ASTKind::from(child) {
-            ASTKind::TypeDefinition => {}
-            ASTKind::FunctionCall => lines.push(function_call::generate(child)),
-            ASTKind::FunctionDefinition => lines.push(function_definition::generate(child)),
-            ASTKind::JsLiteral => lines.push(js_literal::generate(child)),
-            ASTKind::VariableStatement => lines.push(variable_statement::generate(child)),
-            _ => panic!("Unexpected AST Node {:#?}", child),
-        }
-    }
-
-    lines
+fn generate_statements(ctx: &mut context::Context, stmts: &Vec<ast::Stmt>) -> Vec<String> {
+    stmts
+        .iter()
+        .filter(|stmt| match stmt {
+            ast::Stmt::Noop => false,
+            _ => true,
+        })
+        .map(|stmt| match stmt {
+            ast::Stmt::Mod(v) => statement_mod::generate(ctx, v),
+            ast::Stmt::Let(v) => statement_let::generate(ctx, v),
+            ast::Stmt::Record(v) => "record_todo".into(),
+            ast::Stmt::Fn(v) => statement_fn::generate(ctx, v),
+            ast::Stmt::FnCall(v) => fn_call::generate(ctx, v),
+            ast::Stmt::MemberAccess(v) => member_access::generate(ctx, v),
+            ast::Stmt::Return(v) => statement_return::generate(ctx, v),
+            ast::Stmt::LitJs(v) => literal_js::generate(ctx, v),
+            ast::Stmt::Noop => "".into(),
+            _ => panic!("Unexpected AST Node {:#?}", stmt),
+        })
+        .collect::<Vec<_>>()
 }

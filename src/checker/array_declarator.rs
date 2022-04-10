@@ -14,7 +14,7 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
         }
         _ => {
             let message = format!("Invalid AST Node '{:?}'", crate::ast::ASTKind::from(ast));
-            let pos = ast.source_span().from;
+            let pos = ast.span().from;
             ctx.print_error_message(message, pos);
         }
     }
@@ -38,7 +38,7 @@ pub fn check_items(
                 "Invalid array item's type, was expecting '{}' but this item type is '{}'",
                 last_item_type, resolved_item_type
             );
-            let pos = array_declarator_item.source_span().from;
+            let pos = array_declarator_item.span().from;
             ctx.print_error_message(message, pos);
         } else {
             last_item_type = resolved_item_type;
@@ -58,7 +58,7 @@ pub fn check_item(ctx: &mut CheckingContext, scope: &mut Scope, item: &AST) {
         ASTKind::BinaryExpression => binary_expression::check(ctx, scope, item),
         _ => {
             let message = format!("Unsupported array declaration syntax.");
-            let pos = item.source_span().from;
+            let pos = item.span().from;
             ctx.print_error_message(message, pos);
         }
     }

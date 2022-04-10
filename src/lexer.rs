@@ -1,7 +1,4 @@
-use crate::{
-    error_message::ErrorMessage,
-    token::{SourceSpan, Token},
-};
+use crate::{error_message::ErrorMessage, span::Span, token::Token};
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -9,7 +6,8 @@ lazy_static! {
     static ref COMMENT_LINE: Regex = Regex::new(r"^(//.+)").unwrap();
     static ref COMMENT_BLOCK: Regex = Regex::new(r"^(/\*(?s)(.*?)\*/)").unwrap();
     static ref STRING_LITERAL: Regex = Regex::new(r#"^\s*"([^"\\]*(?s:\\.[^"\\]*)*)""#).unwrap();
-    static ref NUMBER_LITERAL: Regex = Regex::new(r#"^([0-9\.])+"#).unwrap();
+    static ref NUMBER_LITERAL: Regex = Regex::new(r#"^([+-]?([0-9]*[.])?[0-9]+)"#).unwrap();
+    static ref BOOLEAN_LITERAL: Regex = Regex::new(r#"^((true)|(false))"#).unwrap();
     static ref JS_LITERAL: Regex = Regex::new(r"^`(?s)(.*?)`").unwrap();
     static ref JSX_A: Regex = Regex::new(r"^<([A-Za-z0-9]+)(?s:.*?)>").unwrap();
     static ref JSX_STRING_LITERAL: Regex = Regex::new(r#"^[^<>\{\}\r\n]+"#).unwrap();
@@ -17,6 +15,7 @@ lazy_static! {
     static ref JSX_CLOSE: Regex = Regex::new(r"^</([a-zA-Z0-9]+)>").unwrap();
     static ref IDENTIFIER: Regex = Regex::new(r"^[a-zA-Z0-9_]+").unwrap();
     static ref WHITESPACE: Regex = Regex::new(r"^[ \r\t]+").unwrap();
+    static ref DOT: Regex = Regex::new(r"^\.").unwrap();
     static ref COLON: Regex = Regex::new(r"^:").unwrap();
     static ref COMMA: Regex = Regex::new(r"^,").unwrap();
     static ref LT: Regex = Regex::new(r"^<").unwrap();
@@ -129,11 +128,19 @@ impl Lexer {
                     let token = Token::Numeric(cap1.to_string(), self.span(cap1.len()));
                     return Some(self.advance_with_token(cap1.len(), token));
                 }
+                _ if BOOLEAN_LITERAL.is_match(slice) => {
+                    let caps = BOOLEAN_LITERAL.captures(slice).unwrap();
+                    let cap1 = &caps[0];
+                    let token = Token::Boolean(cap1.to_string(), self.span(cap1.len()));
+                    return Some(self.advance_with_token(cap1.len(), token));
+                }
                 _ if IDENTIFIER.is_match(slice) => {
                     let cap = &IDENTIFIER.captures(slice).unwrap()[0];
                     let span = self.span(cap.len());
                     let token = match cap {
+                        "fn" => Token::Fn(span),
                         "return" => Token::Return(span),
+                        "mod" => Token::Mod(span),
                         "let" => Token::Let(span),
                         _ => Token::Id(cap.to_string(), span),
                     };
@@ -142,6 +149,11 @@ impl Lexer {
                 _ if NEWLINE.is_match(slice) => {
                     let cap = &NEWLINE.captures(slice).unwrap()[0];
                     let token = Token::NewLine(self.span(cap.len()));
+                    return Some(self.advance_with_token(cap.len(), token));
+                }
+                _ if DOT.is_match(slice) => {
+                    let cap = &DOT.captures(slice).unwrap()[0];
+                    let token = Token::Dot(self.span(cap.len()));
                     return Some(self.advance_with_token(cap.len(), token));
                 }
                 _ if COLON.is_match(slice) => {
@@ -241,8 +253,8 @@ impl Lexer {
         token
     }
 
-    pub fn span(&mut self, how_many: usize) -> SourceSpan {
-        SourceSpan::new(self.pos, self.pos + how_many)
+    pub fn span(&mut self, how_many: usize) -> Span {
+        Span::new(self.pos, self.pos + how_many)
     }
 }
 

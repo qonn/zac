@@ -1,4 +1,4 @@
-use crate::{ast::AST, scope::Scope, token::SourceSpan};
+use crate::{ast::AST, scope::Scope, token::Span};
 
 use super::{context::CheckingContext, identifier};
 
@@ -9,14 +9,14 @@ pub fn check(ctx: &CheckingContext, scope: &mut Scope, ast: &AST) {
     }
 }
 
-pub fn check_name(ctx: &CheckingContext, span: &SourceSpan, scope: &mut Scope, name: &String) {
+pub fn check_name(ctx: &CheckingContext, span: &Span, scope: &mut Scope, name: &String) {
     if let Some(other) = scope.get_record_definition(name) {
         let message = format!("This record name '{}' has been previously defined.", name);
         let pos = span.from;
         ctx.print_error_message(message, pos);
 
         let message = format!("It was previously defined here.");
-        let pos = other.source_span().from;
+        let pos = other.span().from;
         ctx.print_error_message(message, pos);
 
         panic!();
@@ -32,12 +32,12 @@ pub fn check_keys(ctx: &CheckingContext, keys: &Vec<AST>, scope: &mut Scope) {
                 identifier::check(ctx, scope, kind);
             } else {
                 let message = format!("Invalid AST Node '{:?}'", crate::ast::ASTKind::from(key));
-                let pos = key.source_span().from;
+                let pos = key.span().from;
                 ctx.print_error_message(message, pos);
             }
         } else {
             let message = format!("Invalid AST Node '{:?}'", crate::ast::ASTKind::from(key));
-            let pos = key.source_span().from;
+            let pos = key.span().from;
             ctx.print_error_message(message, pos);
         }
     }

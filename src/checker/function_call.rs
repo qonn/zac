@@ -65,7 +65,7 @@ fn check_args(
                 callee_args.len(),
                 args.len()
             );
-            let pos = caller.source_span().from;
+            let pos = caller.span().from;
             ctx.print_error_message(message, pos);
         }
 
@@ -86,7 +86,7 @@ fn check_args(
                 ASTKind::BinaryExpression => binary_expression::check(ctx, scope, caller_arg),
                 _ => {
                     let message = format!("Unexpected function call argument's syntax.");
-                    let pos = caller_arg.source_span().from;
+                    let pos = caller_arg.span().from;
                     ctx.print_error_message(message, pos);
                 }
             }
@@ -126,7 +126,7 @@ fn check_arg_type(
                 "The function '{}', argument '{}' was expecting '{}' but received a '{}'.",
                 callee_name, callee_arg_name, resolved_callee_arg, resolved_caller_arg
             );
-            let pos = caller_arg.source_span().from;
+            let pos = caller_arg.span().from;
             ctx.print_error_message(message, pos);
         }
     }

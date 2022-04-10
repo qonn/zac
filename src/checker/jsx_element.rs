@@ -2,7 +2,7 @@ use super::{context::CheckingContext, function_definition, type_resolver};
 use crate::{
     ast::{ASTKind, AST},
     scope::Scope,
-    token::SourceSpan,
+    token::Span,
 };
 
 pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
@@ -19,7 +19,7 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     } else {
     }
 }
-fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &SourceSpan) {
+fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &Span) {
     if !scope.is_defined(name) && !is_reserved_name(name) {
         let message = format!("This JSX Element '{}' used here could not be found.", name);
         let pos = span.from;

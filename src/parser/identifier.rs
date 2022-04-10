@@ -1,28 +1,11 @@
 use crate::{
-    ast::AST,
+    ast,
     token::{Token, TokenKind},
 };
 
-use super::{context::ParsingContext, function_call, function_definition, type_definition};
+use super::context::ParsingContext;
 
-pub fn parse(ctx: &mut ParsingContext) -> AST {
-    if let Token::Id(value, _) = ctx.get_curr_token() {
-        parse_reserved_keywords(ctx, value)
-    } else {
-        ctx.throw_unexpected_token_with_expecting(&TokenKind::Id);
-        panic!()
-    }
-}
-
-fn parse_reserved_keywords(ctx: &mut ParsingContext, value: String) -> AST {
-    match value.as_str() {
-        "type" => type_definition::parse(ctx),
-        "fn" => function_definition::parse(ctx),
-        _ => parse_non_reserved_keywords(ctx, true),
-    }
-}
-
-pub fn parse_non_reserved_keywords(ctx: &mut ParsingContext, allow_generics: bool) -> AST {
+pub fn parse(ctx: &mut ParsingContext) -> ast::Ident {
     let current_token = ctx.get_curr_token();
 
     match current_token.value().as_str() {
@@ -39,28 +22,21 @@ pub fn parse_non_reserved_keywords(ctx: &mut ParsingContext, allow_generics: boo
 
     ctx.eat_without_consuming_jsx(TokenKind::Id);
 
-    let generics = parse_generics(ctx, allow_generics);
+    let generics = parse_generics(ctx);
 
-    let identifier = AST::Identifier {
-        value: current_token.value(),
+    let identifier = ast::Ident {
+        string: current_token.value(),
         generics,
         span,
     };
 
-    let identifier = function_call::parse(ctx, identifier);
-
     identifier
 }
 
-fn parse_generics(ctx: &mut ParsingContext, allow_generics: bool) -> Vec<AST> {
+fn parse_generics(ctx: &mut ParsingContext) -> Vec<ast::Ident> {
     let mut generics = vec![];
 
     if let Token::Lt(_) = ctx.get_curr_token() {
-        if !allow_generics {
-            ctx.throw_custom("Usage of generic is forbidden here.");
-            panic!();
-        }
-
         ctx.eat(TokenKind::Lt);
 
         while ctx.is_not_eof() {
@@ -69,7 +45,7 @@ fn parse_generics(ctx: &mut ParsingContext, allow_generics: bool) -> Vec<AST> {
                 break;
             }
 
-            generics.push(parse_non_reserved_keywords(ctx, true));
+            generics.push(parse(ctx));
 
             if let Token::Comma(_) = ctx.get_curr_token() {
                 ctx.eat(TokenKind::Comma);

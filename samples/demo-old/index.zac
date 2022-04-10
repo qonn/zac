@@ -1,25 +1,3 @@
-`import { h, renderSSR, Helmet } from './deps.ts'
-import { Application, Router } from './deps.ts'
-
-import { Comments } from './components/Comments.tsx'
-import { Hello } from './components/Hello.tsx'`
-
-/* builtin types */
-type String
-type Boolean
-type Number
-type Vec<a>
-type Fn<a>
-
-type Result<a, b> {
-    Ok(a),
-    Err(b),
-}
-
-type Element
-
-/* builtin functions */
-
 fn print(what: String) {
     return `console.log(what)`
 }

@@ -1,4 +1,4 @@
-use crate::{ast::AST, scope::Scope, token::SourceSpan};
+use crate::{ast::AST, scope::Scope, token::Span};
 
 use super::context::CheckingContext;
 
@@ -109,7 +109,7 @@ pub fn resolve(ctx: &mut CheckingContext, scope: &Scope, target: &AST) -> String
                     body.last().unwrap_or(&AST::Identifier {
                         value: "Unit".into(),
                         generics: vec![],
-                        span: SourceSpan::empty(),
+                        span: Span::empty(),
                     }),
                 )
             };
@@ -202,7 +202,7 @@ pub fn resolve_returning_type(ctx: &mut CheckingContext, scope: &Scope, target: 
                 body.last().unwrap_or(&AST::Identifier {
                     value: "Unit".into(),
                     generics: vec![],
-                    span: SourceSpan::empty(),
+                    span: Span::empty(),
                 })
             ),
         ),

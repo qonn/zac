@@ -1,38 +1,41 @@
-use crate::ast::AST;
-use crate::token::TokenKind;
+use crate::{ast, token::TokenKind};
 
-use super::context::ParsingContext;
 use super::{
-    identifier, js_literal, jsx_element, number_literal, return_statement, string_literal,
-    variable_statement,
+    context::ParsingContext, function, function_call, identifier, literal_js, member_access,
+    statement_let, statement_module, statement_return,
 };
 
-pub fn parse(ctx: &mut ParsingContext) -> Option<AST> {
+pub fn parse(ctx: &mut ParsingContext) -> ast::Stmt {
     let token = ctx.get_curr_token();
 
-    let statement = match TokenKind::from(&token) {
-        TokenKind::Js => js_literal::parse(ctx),
-        TokenKind::Id => Some(identifier::parse(ctx)),
-        TokenKind::Str => Some(string_literal::parse(ctx)),
-        TokenKind::Numeric => Some(number_literal::parse(ctx)),
-        TokenKind::JsxOpen => jsx_element::parse(ctx, false),
-        TokenKind::Let => variable_statement::parse(ctx),
-        TokenKind::Return => return_statement::parse(ctx),
-        _ => None,
+    let statement: ast::Stmt = match TokenKind::from(&token) {
+        TokenKind::Mod => ast::Stmt::Mod(statement_module::parse(ctx)),
+        TokenKind::Fn => ast::Stmt::Fn(function::parse(ctx, false)),
+        TokenKind::Let => ast::Stmt::Let(statement_let::parse(ctx)),
+        TokenKind::Return => ast::Stmt::Return(statement_return::parse(ctx)),
+        TokenKind::Js => ast::Stmt::LitJs(literal_js::parse(ctx)),
+        TokenKind::Id => {
+            let id = identifier::parse(ctx);
+
+            match ctx.get_curr_token().kind() {
+                TokenKind::LParen => function_call::parse(ctx, id).into(),
+                TokenKind::Dot => member_access::parse(ctx, ast::Expr::Id(id)).into(),
+
+                _ => {
+                    ctx.throw_unexpected_token();
+                    panic!();
+                }
+            }
+        }
+        TokenKind::NewLine => {
+            ctx.eat(TokenKind::NewLine);
+            ast::Stmt::Noop
+        }
+        _ => {
+            ctx.throw_unexpected_token();
+            panic!()
+        }
     };
-
-    let curr_token_kind = ctx.get_curr_token().kind();
-
-    if curr_token_kind != TokenKind::NewLine
-        && curr_token_kind != TokenKind::RBrace
-        && curr_token_kind != TokenKind::Eof
-    {
-        ctx.throw_unexpected_token()
-    }
-
-    if curr_token_kind == TokenKind::NewLine {
-        ctx.eat(TokenKind::NewLine);
-    }
 
     statement
 }

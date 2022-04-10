@@ -6,12 +6,11 @@ use std::{
 };
 
 pub mod ast;
-pub mod checker;
 pub mod error_message;
-mod generator;
+pub mod generator;
 pub mod lexer;
 mod parser;
-pub mod scope;
+mod span;
 pub mod token;
 mod utils;
 
@@ -36,18 +35,23 @@ fn main() {
 
     let start = Instant::now();
     let _ = visit_dirs(Path::new("./samples"), &|d| {
-        let filepath = crate::utils::normalize_path(&d.path())
+        let file_path = crate::utils::normalize_path(&d.path())
             .to_string_lossy()
             .to_string();
 
-        if !filepath.contains(".zac") {
+        // if !filepath.contains("router") {
+        //     return;
+        // }
+
+        if !file_path.contains(".zac") {
         } else {
-            println!("compiling {}", filepath);
-            let content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
-            let mut lexer = lexer::new(&filepath, &content);
+            println!("compiling {}", file_path);
+            let file_content = String::from_utf8_lossy(&fs::read(d.path()).unwrap()).to_string();
+            let mut lexer = lexer::new(&file_path, &file_content);
             let ast = parser::parse(&mut lexer);
-            checker::check(&filepath, &content, &ast);
-            generator::generate(filepath, &ast)
+            // println!("{ast:#?}");
+            // checker::check(&filepath, &content, &ast);
+            generator::generate(file_path, file_content, &ast)
         }
     });
     let duration = start.elapsed();

@@ -1,4 +1,4 @@
-use crate::{ast::AST, scope::Scope, token::SourceSpan};
+use crate::{ast::AST, scope::Scope, token::Span};
 
 use super::{array_declarator, context::CheckingContext, function_call};
 
@@ -16,14 +16,14 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     }
 }
 
-pub fn check_name(ctx: &mut CheckingContext, span: &SourceSpan, scope: &mut Scope, name: &String) {
+pub fn check_name(ctx: &mut CheckingContext, span: &Span, scope: &mut Scope, name: &String) {
     if let Some(other) = scope.get_type_definition(name) {
         let message = format!("This variable name '{}' has been previously defined.", name);
         let pos = span.from;
         ctx.print_error_message(message, pos);
 
         let message = format!("It was previously defined here.");
-        let pos = other.source_span().from;
+        let pos = other.span().from;
         ctx.print_error_message(message, pos);
 
         panic!();
@@ -62,7 +62,7 @@ pub fn check_value(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
         } => {}
         _ => {
             let message = format!("Unsupported variable declaration syntax.");
-            let pos = ast.source_span().from;
+            let pos = ast.span().from;
             ctx.print_error_message(message, pos);
         }
     }

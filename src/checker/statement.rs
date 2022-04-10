@@ -20,7 +20,7 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
         ASTKind::JsxElement => jsx_element::check(ctx, scope, ast),
         _ => {
             let message = format!("Unsupported '{:?}' statement.", ASTKind::from(ast));
-            let pos = ast.source_span().from;
+            let pos = ast.span().from;
             ctx.print_error_message(message, pos);
             return;
         }

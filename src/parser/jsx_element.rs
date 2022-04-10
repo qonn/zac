@@ -1,11 +1,12 @@
 use crate::{
-    ast::AST,
-    token::{SourceSpan, Token, TokenKind},
+    ast::{self},
+    span::Span,
+    token::{Token, TokenKind},
 };
 
 use super::{context::ParsingContext, expression};
 
-pub fn parse(ctx: &mut ParsingContext, caller_is_jsx: bool) -> Option<AST> {
+pub fn parse(ctx: &mut ParsingContext, caller_is_jsx: bool) -> ast::JsxElement {
     if let Token::JsxOpen(name, span) = ctx.get_curr_token() {
         let name = name;
         let span_from = span.from;
@@ -46,22 +47,22 @@ pub fn parse(ctx: &mut ParsingContext, caller_is_jsx: bool) -> Option<AST> {
         }
 
         let span_to = ctx.get_curr_token().span().from;
-        let span = SourceSpan::new(span_from, span_to);
+        let span = Span::new(span_from, span_to);
 
-        Some(AST::JsxElement {
+        ast::JsxElement {
             name,
             attrs,
             children,
             self_closing,
             span,
-        })
+        }
     } else {
         ctx.throw_unexpected_token_with_expecting(&TokenKind::JsxOpen);
-        None
+        panic!()
     }
 }
 
-fn parse_attrs(ctx: &mut ParsingContext) -> Vec<AST> {
+fn parse_attrs(ctx: &mut ParsingContext) -> Vec<ast::JsxElementAttribute> {
     let mut attrs = vec![];
 
     while ctx.is_not_eof() {
@@ -87,15 +88,14 @@ fn parse_attrs(ctx: &mut ParsingContext) -> Vec<AST> {
             expecting_rbrace = true;
         }
 
-        if let Some(expr) = expression::parse(ctx) {
-            let span_to = ctx.get_prev_token().span().from;
+        let expr = expression::parse(ctx);
+        let span_to = ctx.get_prev_token().span().from;
 
-            attrs.push(AST::JsxElementAttribute {
-                name,
-                expr: Box::new(expr),
-                span: SourceSpan::new(span_from, span_to),
-            })
-        }
+        attrs.push(ast::JsxElementAttribute {
+            name,
+            expr: expr,
+            span: Span::new(span_from, span_to),
+        });
 
         if expecting_rbrace {
             ctx.eat(TokenKind::RBrace);
@@ -105,7 +105,7 @@ fn parse_attrs(ctx: &mut ParsingContext) -> Vec<AST> {
     attrs
 }
 
-fn parse_children(ctx: &mut ParsingContext) -> Vec<AST> {
+fn parse_children(ctx: &mut ParsingContext) -> Vec<ast::Expr> {
     let mut children = vec![];
 
     while ctx.is_not_eof() {
@@ -115,14 +115,10 @@ fn parse_children(ctx: &mut ParsingContext) -> Vec<AST> {
 
         ctx.eat_all_newlines_jsx();
 
-        if let Some(token) = expression::parse(ctx) {
-            children.push(token);
-        }
+        children.push(expression::parse(ctx));
 
         if let TokenKind::JsxOpen = TokenKind::from(ctx.get_curr_token()) {
-            if let Some(token) = parse(ctx, true) {
-                children.push(token);
-            }
+            children.push(ast::Expr::JsxElement(parse(ctx, true)));
         }
 
         ctx.eat_all_newlines_jsx();

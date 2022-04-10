@@ -1,7 +1,7 @@
 use crate::error_message::ErrorMessage;
 use crate::lexer::Lexer;
-use crate::token::{SourceSpan, Token, TokenKind};
-
+use crate::span::Span;
+use crate::token::{Token, TokenKind};
 pub struct ParsingContext<'l> {
     pub lexer: &'l mut Lexer,
     pub prev_token: Option<Token>,
@@ -141,7 +141,7 @@ impl<'l> ParsingContext<'l> {
     pub fn get_prev_token(&self) -> Token {
         self.prev_token
             .clone()
-            .unwrap_or(Token::Eof(SourceSpan::new(
+            .unwrap_or(Token::Eof(Span::new(
                 self.lexer.content.len() - 1,
                 self.lexer.content.len(),
             )))
@@ -151,7 +151,7 @@ impl<'l> ParsingContext<'l> {
     pub fn get_curr_token(&self) -> Token {
         self.curr_token
             .clone()
-            .unwrap_or(Token::Eof(SourceSpan::new(
+            .unwrap_or(Token::Eof(Span::new(
                 self.lexer.content.len() - 1,
                 self.lexer.content.len(),
             )))

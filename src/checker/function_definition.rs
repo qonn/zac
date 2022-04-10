@@ -1,4 +1,4 @@
-use crate::{ast::AST, scope::Scope, token::SourceSpan};
+use crate::{ast::AST, scope::Scope, token::Span};
 
 use super::{context::CheckingContext, statement, type_resolver::resolve};
 
@@ -21,7 +21,7 @@ pub fn check(ctx: &mut CheckingContext, scope: &mut Scope, ast: &AST) {
     }
 }
 
-fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &SourceSpan) {
+fn check_name(ctx: &mut CheckingContext, scope: &mut Scope, name: &String, span: &Span) {
     if scope.is_defined(name) {
         ctx.print_error_message(
             format!(
@@ -50,7 +50,7 @@ fn check_args(ctx: &mut CheckingContext, scope: &mut Scope, args: &Vec<AST>) {
             }
             _ => {
                 let message = format!("Unexpected function definition argument's syntax.");
-                let pos = arg.source_span().from;
+                let pos = arg.span().from;
                 ctx.print_error_message(message, pos);
             }
         }
@@ -63,7 +63,7 @@ fn check_arg_name(
     name: &String,
     defined_names: &mut Vec<String>,
     ast: &AST,
-    span: &SourceSpan,
+    span: &Span,
 ) {
     if defined_names.iter().any(|x| x == name) {
         let message = format!("This argument name has been previously defined.");
@@ -88,7 +88,7 @@ pub fn resolve_returning_type(ctx: &mut CheckingContext, scope: &Scope, function
     let default_return_type = &AST::Identifier {
         value: "Unit".into(),
         generics: vec![],
-        span: SourceSpan::empty(),
+        span: Span::empty(),
     };
 
     if let AST::FunctionDefinition {

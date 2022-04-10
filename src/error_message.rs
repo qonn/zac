@@ -1,4 +1,4 @@
-use crate::token::SourceSpan;
+use crate::span::Span;
 
 pub struct ErrorMessage {
     pub filepath: String,
@@ -102,12 +102,12 @@ impl ErrorMessage {
         line
     }
 
-    fn find_nearest_newline_left(&self, count: usize) -> SourceSpan {
+    fn find_nearest_newline_left(&self, count: usize) -> Span {
         let mut rev_content = self.content.chars().rev().enumerate();
         let target_pos = self.pos;
         let mut found_counter = 0;
         let mut line = self.line;
-        let mut result = SourceSpan::new(0, 0);
+        let mut result = Span::new(0, 0);
 
         while let Some((curr_pos, c)) = rev_content.next() {
             let curr_pos = (self.len - 1) - curr_pos;
@@ -122,7 +122,7 @@ impl ErrorMessage {
 
             if c == '\n' {
                 found_counter += 1;
-                result = SourceSpan::new(curr_pos, curr_pos + 1);
+                result = Span::new(curr_pos, curr_pos + 1);
                 if line > 0 {
                     line -= 1;
                 }
@@ -130,18 +130,18 @@ impl ErrorMessage {
         }
 
         if found_counter < count {
-            return SourceSpan::new(0, 0);
+            return Span::new(0, 0);
         }
 
         result
     }
 
-    fn find_nearest_newline_right(&self, count: usize) -> SourceSpan {
+    fn find_nearest_newline_right(&self, count: usize) -> Span {
         let mut rev_content = self.content.chars().enumerate();
         let target_pos = self.pos;
         let mut found_counter = 0;
         let len = self.len;
-        let mut result = SourceSpan::new(len - 1, len);
+        let mut result = Span::new(len - 1, len);
 
         while let Some((curr_pos, c)) = rev_content.next() {
             if curr_pos < target_pos {
@@ -158,12 +158,12 @@ impl ErrorMessage {
 
             if c == '\n' {
                 found_counter += 1;
-                result = SourceSpan::new(curr_pos, curr_pos + 1);
+                result = Span::new(curr_pos, curr_pos + 1);
             }
         }
 
         if found_counter < count {
-            return SourceSpan::new(len - 1, len);
+            return Span::new(len - 1, len);
         }
 
         result

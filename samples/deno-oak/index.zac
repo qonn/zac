@@ -1,0 +1,43 @@
+`import { Application } from "https://deno.land/x/oak/mod.ts"`
+
+mod App {
+    fn new(): App {
+        return `new Application()`
+    }
+
+    fn use(app: App, cb: Fn<Context>): App {
+        `app.use(cb)`
+        return app
+    }
+
+    fn listen(app: App, port: Number): Promise<Unit> {
+        `app.listen({ port })`
+    }
+}
+
+mod AppContext {
+    fn get_response(ctx: AppContext): AppResponse {
+        return `ctx.response`
+    }
+}
+
+mod AppResponse {
+    fn set_body(res: AppResponse, str: String): AppResponse {
+        `res.body = str`
+        return res
+    }
+}
+
+mod Utils {
+    fn log(any: a, str: String) {
+        `console.log(str)`
+    }
+}
+
+App.new()
+    .use((ctx: AppContext) {
+        ctx.get_response().set_body("Hello World")
+    })
+    .listen(5000)
+    .await
+    .log("wow this logs after app listen to port 5000")

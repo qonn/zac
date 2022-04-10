@@ -1,224 +1,537 @@
-use strum_macros::EnumDiscriminants;
-
-use crate::token::SourceSpan;
+use crate::span::{Span, Spanned};
 
 #[derive(Debug, Clone)]
-pub enum ASTBinaryExpressionKind {
+pub struct Root {
+    pub name: String,
+    pub path: String,
+    pub stmts: Vec<Stmt>,
+    pub span: Span,
+}
+
+impl Spanned for Root {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Stmt {
+    Mod(Mod),
+    Let(Let),
+    Enum(Enum),
+    Record(Record),
+    Fn(Fn),
+    FnCall(FnCall),
+    MemberAccess(MemberAccess),
+    Return(Return),
+    LitJs(LitJs),
+    Noop,
+}
+
+impl From<Mod> for Stmt {
+    fn from(val: Mod) -> Self {
+        Stmt::Mod(val)
+    }
+}
+
+impl From<Let> for Stmt {
+    fn from(val: Let) -> Self {
+        Stmt::Let(val)
+    }
+}
+
+impl From<Enum> for Stmt {
+    fn from(val: Enum) -> Self {
+        Stmt::Enum(val)
+    }
+}
+
+impl From<Record> for Stmt {
+    fn from(val: Record) -> Self {
+        Stmt::Record(val)
+    }
+}
+
+impl From<Fn> for Stmt {
+    fn from(val: Fn) -> Self {
+        Stmt::Fn(val)
+    }
+}
+
+impl From<FnCall> for Stmt {
+    fn from(val: FnCall) -> Self {
+        Stmt::FnCall(val)
+    }
+}
+
+impl From<MemberAccess> for Stmt {
+    fn from(val: MemberAccess) -> Self {
+        Stmt::MemberAccess(val)
+    }
+}
+
+impl From<Return> for Stmt {
+    fn from(val: Return) -> Self {
+        Stmt::Return(val)
+    }
+}
+
+impl From<LitJs> for Stmt {
+    fn from(val: LitJs) -> Self {
+        Stmt::LitJs(val)
+    }
+}
+
+impl Spanned for Stmt {
+    fn span(&self) -> Span {
+        match self {
+            Stmt::Mod(v) => v.span(),
+            Stmt::Let(v) => v.span(),
+            Stmt::Enum(v) => v.span(),
+            Stmt::Record(v) => v.span(),
+            Stmt::Fn(v) => v.span(),
+            Stmt::FnCall(v) => v.span(),
+            Stmt::MemberAccess(v) => v.span(),
+            Stmt::Return(v) => v.span(),
+            Stmt::LitJs(v) => v.span(),
+            Stmt::Noop => todo!(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Record {
+    pub id: Ident,
+    pub props: Vec<RecProp>,
+    pub span: Span,
+}
+
+impl Spanned for Record {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RecProp {
+    pub id: Ident,
+    pub init: Type,
+    pub span: Span,
+}
+
+impl Spanned for RecProp {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Enum {
+    pub id: Ident,
+    pub span: Span,
+}
+
+impl Spanned for Enum {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Mod {
+    pub path: String,
+    pub stmts: Vec<Stmt>,
+    pub span: Span,
+}
+
+impl Spanned for Mod {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Let {
+    pub id: String,
+    pub expr: Expr,
+    pub span: Span,
+}
+impl Spanned for Let {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Expr {
+    Id(Ident),
+    Fn(Fn),
+    FnCall(FnCall),
+    Binary(Box<Binary>),
+    LitBoolean(LitBoolean),
+    LitNumber(LitNumber),
+    LitString(LitString),
+    LitJs(LitJs),
+    JsxElement(JsxElement),
+    InitArray(InitArray),
+    InitRecord(InitRecord),
+    MemberAccess(Box<MemberAccess>),
+    If(Box<If>),
+}
+
+impl From<Ident> for Expr {
+    fn from(val: Ident) -> Self {
+        Expr::Id(val)
+    }
+}
+
+impl From<Fn> for Expr {
+    fn from(val: Fn) -> Self {
+        Expr::Fn(val)
+    }
+}
+
+impl From<FnCall> for Expr {
+    fn from(val: FnCall) -> Self {
+        Expr::FnCall(val)
+    }
+}
+
+impl From<Binary> for Expr {
+    fn from(val: Binary) -> Self {
+        Expr::Binary(Box::new(val))
+    }
+}
+
+impl From<LitBoolean> for Expr {
+    fn from(val: LitBoolean) -> Self {
+        Expr::LitBoolean(val)
+    }
+}
+
+impl From<LitNumber> for Expr {
+    fn from(val: LitNumber) -> Self {
+        Expr::LitNumber(val)
+    }
+}
+
+impl From<LitString> for Expr {
+    fn from(val: LitString) -> Self {
+        Expr::LitString(val)
+    }
+}
+
+impl From<LitJs> for Expr {
+    fn from(val: LitJs) -> Self {
+        Expr::LitJs(val)
+    }
+}
+
+impl From<JsxElement> for Expr {
+    fn from(val: JsxElement) -> Self {
+        Expr::JsxElement(val)
+    }
+}
+
+impl From<InitArray> for Expr {
+    fn from(val: InitArray) -> Self {
+        Expr::InitArray(val)
+    }
+}
+
+impl From<InitRecord> for Expr {
+    fn from(val: InitRecord) -> Self {
+        Expr::InitRecord(val)
+    }
+}
+
+impl From<If> for Expr {
+    fn from(val: If) -> Self {
+        Expr::If(Box::new(val))
+    }
+}
+
+impl From<MemberAccess> for Expr {
+    fn from(val: MemberAccess) -> Self {
+        Expr::MemberAccess(Box::new(val))
+    }
+}
+
+impl Spanned for Expr {
+    fn span(&self) -> Span {
+        match self {
+            Expr::Id(v) => v.span(),
+            Expr::Fn(v) => v.span(),
+            Expr::FnCall(v) => v.span(),
+            Expr::Binary(v) => v.span(),
+            Expr::LitBoolean(v) => v.span(),
+            Expr::LitNumber(v) => v.span(),
+            Expr::LitString(v) => v.span(),
+            Expr::LitJs(v) => v.span(),
+            Expr::JsxElement(v) => v.span(),
+            Expr::InitArray(v) => v.span(),
+            Expr::InitRecord(v) => v.span(),
+            Expr::MemberAccess(v) => v.span(),
+            Expr::If(v) => v.span(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LitBoolean {
+    pub raw: String,
+    pub value: bool,
+    pub span: Span,
+}
+
+impl Spanned for LitBoolean {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LitNumber {
+    pub raw: String,
+    pub value: f64,
+    pub span: Span,
+}
+
+impl Spanned for LitNumber {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LitString {
+    pub raw: String,
+    pub value: String,
+    pub span: Span,
+}
+
+impl Spanned for LitString {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LitJs {
+    pub raw: String,
+    pub value: String,
+    pub span: Span,
+}
+
+impl Spanned for LitJs {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct JsxElement {
+    pub name: String,
+    pub attrs: Vec<JsxElementAttribute>,
+    pub children: Vec<Expr>,
+    pub self_closing: bool,
+    pub span: Span,
+}
+
+impl Spanned for JsxElement {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct JsxElementAttribute {
+    pub name: String,
+    pub expr: Expr,
+    pub span: Span,
+}
+
+impl Spanned for JsxElementAttribute {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Fn {
+    pub id: Ident,
+    pub anonymous: bool,
+    pub args: Vec<FnArg>,
+    pub stmts: Vec<FnStmt>,
+    pub output: Type,
+    pub span: Span,
+}
+
+impl Spanned for Fn {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FnArg {
+    pub id: Ident,
+    pub input: Type,
+    pub span: Span,
+}
+
+impl Spanned for FnArg {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FnCall {
+    pub id: Ident,
+    pub args: Vec<Expr>,
+    pub span: Span,
+}
+
+impl Spanned for FnCall {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Type {
+    Default,
+    Ident(Ident),
+}
+
+#[derive(Debug, Clone)]
+pub enum FnStmt {
+    Let(Let),
+    FnCall(FnCall),
+    MemberAccess(MemberAccess),
+    LitJs(LitJs),
+    If(If),
+    Ret(Return),
+}
+
+#[derive(Debug, Clone)]
+pub struct Return {
+    pub expr: Expr,
+    pub span: Span,
+}
+
+impl Spanned for Return {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Binary {
+    pub op: BinaryOp,
+    pub left: Expr,
+    pub right: Expr,
+    pub span: Span,
+}
+
+impl Spanned for Binary {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum BinaryOp {
     Add,
     Sub,
     Mul,
     Div,
+    Eq,
     Lt,
     Gt,
 }
 
-#[derive(Debug, Clone, EnumDiscriminants)]
-#[strum_discriminants(name(ASTKind))]
-pub enum AST {
-    Root {
-        children: Vec<AST>,
-    },
-    NumberLiteral {
-        value: String,
-        span: SourceSpan,
-    },
-    StringLiteral {
-        value: String,
-        span: SourceSpan,
-    },
-    Identifier {
-        value: String,
-        generics: Vec<AST>,
-        span: SourceSpan,
-    },
-    JsLiteral {
-        value: String,
-        span: SourceSpan,
-    },
-    JsxElement {
-        name: String,
-        attrs: Vec<AST>,
-        children: Vec<AST>,
-        self_closing: bool,
-        span: SourceSpan,
-    },
-    JsxElementAttribute {
-        name: String,
-        expr: Box<AST>,
-        span: SourceSpan,
-    },
-    TypeDefinition {
-        name: String,
-        generics: Vec<AST>,
-        variants: Vec<AST>,
-        span: SourceSpan,
-    },
-    TypeVariant {
-        name: String,
-        generics: Vec<AST>,
-        span: SourceSpan,
-    },
-    EnumDefinition {
-        name: String,
-        generics: Vec<AST>,
-        items: Vec<AST>,
-        span: SourceSpan,
-    },
-    RecordDefinition {
-        name: String,
-        keys: Vec<AST>,
-        span: SourceSpan,
-    },
-    RecordKeyDefinition {
-        name: String,
-        kind: Vec<AST>,
-        span: SourceSpan,
-    },
-    VariableStatement {
-        name: String,
-        value: Vec<AST>,
-        span: SourceSpan,
-    },
-    ArrayDeclarator {
-        items: Vec<AST>,
-        span: SourceSpan,
-    },
-    FunctionDefinition {
-        name: String,
-        args: Vec<AST>,
-        expected_return_type: Option<Box<AST>>,
-        body: Vec<AST>,
-        span: SourceSpan,
-    },
-    FunctionArgumentDefinition {
-        name: String,
-        type_: Box<AST>,
-        span: SourceSpan,
-    },
-    BinaryExpression {
-        kind: ASTBinaryExpressionKind,
-        left: Vec<AST>,
-        right: Vec<AST>,
-        span: SourceSpan,
-    },
-    FunctionCall {
-        callee: Box<AST>,
-        args: Vec<AST>,
-        span: SourceSpan,
-    },
-    IfStatement {
-        test: Vec<AST>,
-        consequence: Vec<AST>,
-        alternative: Vec<AST>,
-        span: SourceSpan,
-    },
-    MemberExpression {
-        object: Box<AST>,
-        property: Box<AST>,
-        span: SourceSpan,
-    },
-    ReturnStatement {
-        expr: Option<Box<AST>>,
-        span: SourceSpan,
-    },
+impl BinaryOp {
+    pub(crate) fn value(&self) -> String {
+        match self {
+            BinaryOp::Add => "+".into(),
+            BinaryOp::Sub => "-".into(),
+            BinaryOp::Mul => "*".into(),
+            BinaryOp::Div => "/".into(),
+            BinaryOp::Eq => "=".into(),
+            BinaryOp::Lt => "<".into(),
+            BinaryOp::Gt => ">".into(),
+        }
+    }
 }
 
-impl AST {
-    pub fn source_span(&self) -> SourceSpan {
-        let span = SourceSpan::new(0, 0);
+#[derive(Debug, Clone)]
+pub struct Ident {
+    pub string: String,
+    pub generics: Vec<Ident>,
+    pub span: Span,
+}
+impl Spanned for Ident {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
 
-        let span = match self {
-            AST::Root { children: _ } => &span,
-            AST::NumberLiteral { value: _, span } => span,
-            AST::StringLiteral { value: _, span } => span,
-            AST::Identifier {
-                value: _,
-                generics: _,
-                span,
-            } => span,
-            AST::JsLiteral { value: _, span } => span,
-            AST::JsxElement {
-                name: _,
-                attrs: _,
-                children: _,
-                self_closing: _,
-                span,
-            } => span,
-            AST::JsxElementAttribute {
-                name: _,
-                expr: _,
-                span,
-            } => span,
-            AST::TypeDefinition {
-                name: _,
-                generics: _,
-                variants: _,
-                span,
-            } => span,
-            AST::EnumDefinition {
-                name: _,
-                generics: _,
-                items: _,
-                span,
-            } => span,
-            AST::RecordDefinition {
-                name: _,
-                keys: _,
-                span,
-            } => span,
-            AST::RecordKeyDefinition {
-                name: _,
-                kind: _,
-                span,
-            } => span,
-            AST::VariableStatement {
-                name: _,
-                value: _,
-                span,
-            } => span,
-            AST::ArrayDeclarator { items: _, span } => span,
-            AST::FunctionDefinition {
-                name: _,
-                args: _,
-                expected_return_type: _,
-                body: _,
-                span,
-            } => span,
-            AST::FunctionArgumentDefinition {
-                name: _,
-                type_: _,
-                span,
-            } => span,
-            AST::BinaryExpression {
-                kind: _,
-                left: _,
-                right: _,
-                span,
-            } => span,
-            AST::FunctionCall {
-                callee: _,
-                args: _,
-                span,
-            } => span,
-            AST::IfStatement {
-                test: _,
-                consequence: _,
-                alternative: _,
-                span,
-            } => span,
-            AST::MemberExpression {
-                object: _,
-                property: _,
-                span,
-            } => span,
-            AST::TypeVariant {
-                name: _,
-                generics: _,
-                span,
-            } => span,
-            AST::ReturnStatement { expr: _, span } => span,
-        };
+#[derive(Debug, Clone)]
+pub struct InitArray {
+    pub items: Vec<Expr>,
+    pub span: Span,
+}
 
-        span.clone()
+impl Spanned for InitArray {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct InitRecord {
+    pub props: Vec<InitObjectProp>,
+    pub span: Span,
+}
+
+impl Spanned for InitRecord {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum InitObjectProp {
+    Key(Ident),
+    KeyValue(Ident, Expr),
+    Spread(Ident),
+}
+
+#[derive(Debug, Clone)]
+pub struct If {
+    pub test: Expr,
+    pub truthy: Expr,
+    pub falsy: Expr,
+    pub span: Span,
+}
+
+impl Spanned for If {
+    fn span(&self) -> Span {
+        self.span.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct MemberAccess {
+    pub obj: Expr,
+    pub prop: Expr,
+    pub span: Span,
+}
+
+impl Spanned for MemberAccess {
+    fn span(&self) -> Span {
+        self.span.clone()
     }
 }
