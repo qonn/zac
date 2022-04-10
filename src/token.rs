@@ -123,3 +123,41 @@ impl Default for Token {
         Token::Eof(Span::new(0, 0))
     }
 }
+
+impl TokenKind {
+    fn value(&self) -> String {
+        match self {
+            TokenKind::Mod => String::from("mod"),
+            TokenKind::If => String::from("if"),
+            TokenKind::Fn => String::from("fn"),
+            TokenKind::Id => String::from("ident"),
+            TokenKind::Str => String::from("string"),
+            TokenKind::Numeric => String::from("number"),
+            TokenKind::Boolean => String::from("true | false"),
+            TokenKind::Js => String::from("js"),
+            TokenKind::JsxOpen => String::from("jsx element"),
+            TokenKind::JsxSelfClose => String::from("/>"),
+            TokenKind::JsxClose => String::from("jsx closing element </div>"),
+            TokenKind::Plus => String::from("+"),
+            TokenKind::Minus => String::from("-"),
+            TokenKind::Divide => String::from("/"),
+            TokenKind::Multiply => String::from("*"),
+            TokenKind::Eq => String::from("="),
+            TokenKind::LParen => String::from("("),
+            TokenKind::RParen => String::from(")"),
+            TokenKind::LBrace => String::from("{"),
+            TokenKind::RBrace => String::from("}"),
+            TokenKind::Gt => String::from(">"),
+            TokenKind::Lt => String::from("<"),
+            TokenKind::DblColon => String::from(":"),
+            TokenKind::Comma => String::from(","),
+            TokenKind::NewLine => String::from("\n"),
+            TokenKind::Eof => String::from(""),
+            TokenKind::LSqrBr => String::from("["),
+            TokenKind::RSqrBr => String::from("]"),
+            TokenKind::Dot => String::from("."),
+            TokenKind::Return => String::from("return"),
+            TokenKind::Let => String::from("let"),
+        }
+    }
+}

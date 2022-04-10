@@ -85,7 +85,7 @@ impl<'l> ParsingContext<'l> {
         let current_token = self.get_curr_token();
         let message = format!(
             "Unexpected token {:?}, was expecting token with type {:?}.",
-            TokenKind::from(&current_token),
+            &current_token.value(),
             kind
         );
         let source_span = current_token.span();
@@ -99,7 +99,7 @@ impl<'l> ParsingContext<'l> {
         let filepath = self.lexer.filepath.clone();
         let content = self.lexer.content.clone();
         let current_token = self.get_curr_token();
-        let message = format!("Unexpected token {:?}.", &current_token);
+        let message = format!("Unexpected token {:?}.", current_token.value());
         let source_span = current_token.span();
 
         ErrorMessage::new(filepath, content, message, source_span.from).print();
