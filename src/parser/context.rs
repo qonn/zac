@@ -4,8 +4,8 @@ use crate::span::Span;
 use crate::token::{Token, TokenKind};
 pub struct ParsingContext<'l> {
     pub lexer: &'l mut Lexer,
-    pub prev_token: Option<Token>,
-    curr_token: Option<Token>,
+    pub prev_token: Token,
+    curr_token: Token,
     anon_counter: usize,
 }
 
@@ -15,7 +15,7 @@ impl<'l> ParsingContext<'l> {
 
         ParsingContext {
             lexer,
-            prev_token: None,
+            prev_token: token.clone(),
             curr_token: token,
             anon_counter: 1,
         }
@@ -24,7 +24,7 @@ impl<'l> ParsingContext<'l> {
     pub fn eat(&mut self, target_kind: TokenKind) {
         if TokenKind::from(self.get_curr_token()) == target_kind {
             let next_token = self.lexer.get_next_token(false, false);
-            self.prev_token = Some(self.get_curr_token());
+            self.prev_token = self.get_curr_token();
             self.curr_token = next_token;
         } else {
             self.throw_unexpected_token_with_expecting(&target_kind);
@@ -34,7 +34,7 @@ impl<'l> ParsingContext<'l> {
     pub fn eat_without_consuming_jsx(&mut self, target_kind: TokenKind) {
         if TokenKind::from(self.get_curr_token()) == target_kind {
             let next_token = self.lexer.get_next_token(true, false);
-            self.prev_token = Some(self.get_curr_token());
+            self.prev_token = self.get_curr_token();
             self.curr_token = next_token;
         } else {
             self.throw_unexpected_token_with_expecting(&target_kind);
@@ -44,7 +44,7 @@ impl<'l> ParsingContext<'l> {
     pub fn eat_jsx(&mut self, target_kind: TokenKind) {
         if TokenKind::from(self.get_curr_token()) == target_kind {
             let next_token = self.lexer.get_next_token(false, true);
-            self.prev_token = Some(self.get_curr_token());
+            self.prev_token = self.get_curr_token();
             self.curr_token = next_token;
         } else {
             self.throw_unexpected_token_with_expecting(&target_kind);
@@ -58,7 +58,7 @@ impl<'l> ParsingContext<'l> {
             }
             TokenKind::NewLine => {
                 let next_token = self.lexer.get_next_token(false, false);
-                self.prev_token = Some(self.get_curr_token());
+                self.prev_token = self.get_curr_token();
                 self.curr_token = next_token;
             }
             _ => self.throw_unexpected_token_with_expecting(&TokenKind::NewLine),
@@ -72,10 +72,24 @@ impl<'l> ParsingContext<'l> {
             }
             TokenKind::NewLine => {
                 let next_token = self.lexer.get_next_token(false, true);
-                self.prev_token = Some(self.get_curr_token());
+                self.prev_token = self.get_curr_token();
                 self.curr_token = next_token;
             }
             _ => self.throw_unexpected_token_with_expecting(&TokenKind::NewLine),
+        }
+    }
+
+    pub fn peek_ahead_ignoring_newlines(&mut self) -> Token {
+        let mut pos = self.lexer.pos;
+
+        loop {
+            let (new_pos, token) = self.lexer.peek_ahead(pos, false, false);
+
+            pos = new_pos;
+
+            if token.kind() != TokenKind::NewLine {
+                return token;
+            }
         }
     }
 
@@ -131,7 +145,7 @@ impl<'l> ParsingContext<'l> {
     }
 
     pub fn is_not_eof(&mut self) -> bool {
-        if let Some(_) = &self.curr_token {
+        if self.curr_token.kind() != TokenKind::Eof {
             true
         } else {
             false
@@ -139,23 +153,11 @@ impl<'l> ParsingContext<'l> {
     }
 
     pub fn get_prev_token(&self) -> Token {
-        self.prev_token
-            .clone()
-            .unwrap_or(Token::Eof(Span::new(
-                self.lexer.content.len() - 1,
-                self.lexer.content.len(),
-            )))
-            .clone()
+        self.prev_token.clone()
     }
 
     pub fn get_curr_token(&self) -> Token {
-        self.curr_token
-            .clone()
-            .unwrap_or(Token::Eof(Span::new(
-                self.lexer.content.len() - 1,
-                self.lexer.content.len(),
-            )))
-            .clone()
+        self.curr_token.clone()
     }
 
     pub fn get_new_anon_name(&mut self) -> String {

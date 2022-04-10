@@ -36,7 +36,8 @@ mod Utils {
 
 let port = 5000
 
-App.new()
+App
+    .new()
     .use((ctx: AppContext) {
         ctx.get_response().set_body("Hello World")
     })

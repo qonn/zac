@@ -1,8 +1,8 @@
 use crate::{ast, token::TokenKind};
 
 use super::{
-    context::ParsingContext, function, function_call, identifier, literal_js, member_access,
-    statement_let, statement_module, statement_return,
+    context::ParsingContext, expression, function, function_call, identifier, literal_js,
+    member_access, statement_let, statement_module, statement_return,
 };
 
 pub fn parse(ctx: &mut ParsingContext) -> ast::Stmt {
@@ -16,6 +16,10 @@ pub fn parse(ctx: &mut ParsingContext) -> ast::Stmt {
         TokenKind::Js => ast::Stmt::LitJs(literal_js::parse(ctx)),
         TokenKind::Id => {
             let id = identifier::parse(ctx);
+
+            if ctx.peek_ahead_ignoring_newlines().kind() == TokenKind::Dot {
+                ctx.eat_all_newlines();
+            }
 
             match ctx.get_curr_token().kind() {
                 TokenKind::LParen => function_call::parse(ctx, id).into(),
