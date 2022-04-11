@@ -19,16 +19,9 @@ pub fn parse(ctx: &mut ParsingContext) -> ast::Ident {
     }
 
     let span = current_token.span().clone();
-    let mut string = current_token.value();
+    let string = current_token.value();
 
     ctx.eat_without_consuming_jsx(TokenKind::Id);
-
-    while ctx.get_curr_token().kind() == TokenKind::Dot {
-        ctx.eat(TokenKind::Dot);
-        let string_part = ctx.get_curr_token().value();
-        string = format!("{string}.{string_part}");
-        ctx.eat_without_consuming_jsx(TokenKind::Id);
-    }
 
     let generics = parse_generics(ctx);
 
