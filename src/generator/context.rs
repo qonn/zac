@@ -151,7 +151,7 @@ impl Context {
 
     pub fn find_method(
         &mut self,
-        method_name: String,
+        method_name: &String,
         type_: ast::Ident,
     ) -> Option<(&String, &ast::Fn)> {
         for (path, fn_def) in self.fn_defs.iter() {
@@ -159,7 +159,7 @@ impl Context {
                 continue;
             }
 
-            if fn_def.id.string != method_name {
+            if &fn_def.id.string != method_name {
                 continue;
             }
 

@@ -10,7 +10,7 @@ mod App {
         return app
     }
 
-    fn listen(app: App, port: Number): Promise<Unit> {
+    fn listen(app: App, port: Number): Promise<Unit, App.Error> {
         `app.listen({ port })`
     }
 }
@@ -36,13 +36,12 @@ mod Utils {
 
 let port = 5000
 
-App
-    .new()
-    .use((ctx: App.Context) {
-        ctx
-            .get_response()
-            .set_body("Hello World")
-    })
-    .listen(port)
-    .await
-    .log("wow this logs after app listen to port #{port}")
+App.new()
+   .use((ctx: App.Context) {
+       ctx
+           .get_response()
+           .set_body("Hello World")
+   })
+   .listen(port)
+   .await
+   .log("wow this logs after app listen to port #{port}")

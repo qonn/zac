@@ -28,6 +28,16 @@ pub enum Stmt {
     Noop,
 }
 
+impl From<Expr> for Stmt {
+    fn from(val: Expr) -> Self {
+        match val {
+            Expr::Fn(v) => Stmt::Fn(v),
+            Expr::FnCall(v) => Stmt::FnCall(v),
+            Expr::MemberAccess(v) => Stmt::MemberAccess(*v),
+            _ => panic!("Unsupported expression to statement"),
+        }
+    }
+}
 impl From<Mod> for Stmt {
     fn from(val: Mod) -> Self {
         Stmt::Mod(val)

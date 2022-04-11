@@ -9,7 +9,7 @@ pub fn generate(ctx: &mut context::Context, ast: &ast::MemberAccess) -> String {
 
     scan(ctx, ast, vec![], &mut results);
 
-    let mut results2: Vec<(String, Option<InferedType>)> = vec![];
+    let mut results2: Vec<(String, String, Option<InferedType>)> = vec![];
 
     resolve_types(ctx, &mut results, &mut results2);
 
@@ -19,7 +19,8 @@ pub fn generate(ctx: &mut context::Context, ast: &ast::MemberAccess) -> String {
         .collect::<Vec<_>>();
 
     for (idx, (path, item, res)) in results.iter().enumerate() {
-        let (current_infered_path, current_infered_type) = &results2[idx];
+        let (current_infered_path, current_infered_alternative_path, current_infered_type) =
+            &results2[idx];
 
         match item {
             ast::Expr::Id(v) => {
@@ -45,43 +46,54 @@ pub fn generate(ctx: &mut context::Context, ast: &ast::MemberAccess) -> String {
             ast::Expr::FnCall(v) => {
                 let gen_fn = res;
 
-                let (_, last_infered_type) = &results2[idx - 1];
+                let (_, _, last_infered_type) = &results2[if idx > 0 { idx - 1 } else { idx }];
 
-                let mut found_method = if let Some(last_item) = last_infered_type {
-                    if let Some((method_path, method_def)) =
-                        ctx.find_method(v.id.string.to_string(), last_item.clone().into())
-                    {
-                        method_path.to_string()
+                let mut resolved_method_name =
+                    if let Some(last_item_infered_type) = last_infered_type {
+                        let curr_fn_call_id = v.id.string.to_string();
+                        let last_item_infered_type_as_ident = last_item_infered_type.clone().into();
+
+                        if let Some((method_path, _)) =
+                            ctx.find_method(&curr_fn_call_id, last_item_infered_type_as_ident)
+                        {
+                            method_path.to_string()
+                        } else {
+                            curr_fn_call_id
+                        }
                     } else {
                         v.id.string.to_string()
-                    }
-                } else {
-                    v.id.string.to_string()
-                };
+                    };
 
-                let to_replace = format!("{}(", v.id.string);
-                let gen_fn = gen_fn.replace(&to_replace, "");
                 let path = path.replace(".", "_");
+                let alternative_resolved_method_name = resolved_method_name.replace(".", "_");
 
-                if let Some(v) = ctx.find_fn(format!("{path}_{found_method}")) {
-                    found_method = format!("{path}_{found_method}");
+                if let Some(_) = ctx.find_fn(format!("{path}_{resolved_method_name}")) {
+                    resolved_method_name = format!("{path}_{resolved_method_name}");
                 }
 
-                let result_gen_fn = if gen_fn.trim().len() > 0 {
-                    if gen_fn.trim() == ")" {
-                        format!("{result}{gen_fn}")
+                if let Some(_) = ctx.find_fn(format!("{alternative_resolved_method_name}")) {
+                    resolved_method_name = format!("{alternative_resolved_method_name}");
+                }
+
+                let to_replace = format!("{}(", v.id.string);
+                let gen_fn_part = gen_fn.replace(&to_replace, "");
+
+                let result_gen_fn = if gen_fn_part.trim().len() > 0 {
+                    if gen_fn_part.trim() == ")" {
+                        format!("{result}{gen_fn_part}")
                     } else {
                         if let None = last_infered_type {
-                            format!("{result}{gen_fn}")
+                            format!("{gen_fn_part}")
                         } else {
-                            format!("{result}, {gen_fn}")
+                            format!("{result}, {gen_fn_part}")
                         }
                     }
                 } else {
                     result
                 };
 
-                result = format!("{found_method}({result_gen_fn}");
+                result = format!("{resolved_method_name}({result_gen_fn}");
+                println!("result {result}");
             }
             _ => panic!("Unsupported"),
         }
@@ -93,9 +105,11 @@ pub fn generate(ctx: &mut context::Context, ast: &ast::MemberAccess) -> String {
 fn resolve_types(
     ctx: &mut context::Context,
     results: &mut Vec<(Vec<String>, ast::Expr, String)>,
-    results2: &mut Vec<(String, Option<InferedType>)>,
+    results2: &mut Vec<(String, String, Option<InferedType>)>,
 ) {
     for (idx, (path, item, res)) in results.iter().enumerate() {
+        let path1 = path.clone().join(".");
+
         let path2 = path.join("_");
 
         let id = match item {
@@ -110,14 +124,17 @@ fn resolve_types(
             _ => panic!("Unsupported"),
         };
 
-        let test = if id.len() > 0 {
+        let test = if path2.len() > 0 && id.len() > 0 {
             format!("{path2}_{id}")
+        } else if path2.len() == 0 && id.len() > 0 {
+            let id = id.replace(".", "_");
+            format!("{id}")
         } else {
             format!("{path2}{id}")
         };
 
         let resolved_type: Option<InferedType> = if id == "await" {
-            let (prev_path, prev_item) = &results2[idx - 1];
+            let (prev_path, prev_alt_path, prev_item) = &results2[idx - 1];
 
             if let Some(prev_item) = prev_item {
                 if prev_item.id == "Promise" {
@@ -137,12 +154,11 @@ fn resolve_types(
             Some(var_def.clone())
         } else if let Some(var_def) = ctx.resolved_type_defs.get(&id) {
             Some(var_def.clone())
-        } else if let Some((prev_path, prev_item)) =
+        } else if let Some((prev_path, prev_alt_path, prev_item)) =
             &results2.get(if idx > 0 { idx - 1 } else { idx })
         {
             if let Some(prev_item) = prev_item {
-                if let Some((path, method)) = ctx.find_method(id.clone(), prev_item.clone().into())
-                {
+                if let Some((path, method)) = ctx.find_method(&id, prev_item.clone().into()) {
                     Some(method.output.clone().into())
                 } else {
                     None
@@ -154,7 +170,7 @@ fn resolve_types(
             None
         };
 
-        results2.push((test, resolved_type));
+        results2.push((test, id, resolved_type));
     }
 }
 

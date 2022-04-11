@@ -114,7 +114,6 @@ impl<'l> ParsingContext<'l> {
         let current_token = self.get_curr_token();
         let message = format!("Unexpected token {:?}.", current_token.value());
         let source_span = current_token.span();
-
         ErrorMessage::new(filepath, content, message, source_span.from).print();
 
         panic!()

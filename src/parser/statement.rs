@@ -21,7 +21,7 @@ pub fn parse(ctx: &mut ParsingContext) -> ast::Stmt {
                 ctx.eat_all_newlines();
             }
 
-            match ctx.get_curr_token().kind() {
+            let mut expr: ast::Expr = match ctx.get_curr_token().kind() {
                 TokenKind::LParen => function_call::parse(ctx, id).into(),
                 TokenKind::Dot => member_access::parse(ctx, ast::Expr::Id(id)).into(),
 
@@ -29,7 +29,14 @@ pub fn parse(ctx: &mut ParsingContext) -> ast::Stmt {
                     ctx.throw_unexpected_token();
                     panic!();
                 }
+            };
+
+            if ctx.peek_ahead_ignoring_newlines().kind() == TokenKind::Dot {
+                ctx.eat_all_newlines();
+                expr = member_access::parse(ctx, expr).into();
             }
+
+            expr.into()
         }
         TokenKind::NewLine => {
             ctx.eat(TokenKind::NewLine);
