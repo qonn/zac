@@ -1,4 +1,5 @@
 use crate::ast;
+use crate::generator::expression;
 
 use super::context;
 use super::{jsx_element_attribute, literal_string};
@@ -21,7 +22,7 @@ fn generate_children(ctx: &mut context::Context, children: &Vec<ast::Expr>) -> S
         .map(|child| match child {
             ast::Expr::JsxElement(v) => generate(ctx, v),
             ast::Expr::LitString(v) => literal_string::generate(ctx, v, true, false),
-            _ => panic!("jsx_element: Unexpected child AST Node {child:#?}"),
+            _ => format!("{{{}}}", expression::generate(ctx, child)),
         })
         .collect::<Vec<String>>()
         .join("\n")

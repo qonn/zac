@@ -115,7 +115,13 @@ fn parse_children(ctx: &mut ParsingContext) -> Vec<ast::Expr> {
 
         ctx.eat_all_newlines_jsx();
 
-        children.push(expression::parse(ctx));
+        if ctx.get_curr_token().kind() == TokenKind::LBrace {
+            ctx.eat(TokenKind::LBrace);
+            children.push(expression::parse(ctx));
+            ctx.eat(TokenKind::RBrace);
+        } else {
+            children.push(expression::parse(ctx));
+        }
 
         if let TokenKind::JsxOpen = TokenKind::from(ctx.get_curr_token()) {
             children.push(ast::Expr::JsxElement(parse(ctx, true)));
