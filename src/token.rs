@@ -49,7 +49,7 @@ impl Token {
             Token::Numeric(v, _) => v.clone(),
             Token::Boolean(v, _) => v.clone(),
             Token::Js(v, _) => v.clone(),
-            Token::JsxOpen(v, _) => v.clone(),
+            Token::JsxOpen(v, _) => format!("<{}", v),
             Token::JsxSelfClose(_) => String::from("/>"),
             Token::JsxClose(v, _) => v.clone(),
             Token::Plus(_) => String::from("+"),
