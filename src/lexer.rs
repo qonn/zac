@@ -102,7 +102,10 @@ impl Lexer {
                     let caps = JS_LITERAL.captures(slice).unwrap();
                     let cap_overall = &caps[0];
                     let cap_inner = &caps[1];
-                    let token = Token::Js(cap_inner.to_string(), self.span(cap_overall.len()));
+                    let token = Token::Js(
+                        cap_inner.to_string(),
+                        self.span(current_pos, cap_overall.len()),
+                    );
                     return self.peek_ahead_advance_with_token(
                         current_pos,
                         cap_overall.len(),
@@ -112,44 +115,47 @@ impl Lexer {
                 _ if JSX_SELF_CLOSE.is_match(slice) => {
                     let caps = JSX_SELF_CLOSE.captures(slice).unwrap();
                     let cap = &caps[0];
-                    let token = Token::JsxSelfClose(self.span(cap.len()));
+                    let token = Token::JsxSelfClose(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if JSX_CLOSE.is_match(slice) => {
                     let caps = JSX_CLOSE.captures(slice).unwrap();
                     let cap = &caps[0];
                     let name = &caps[1];
-                    let token = Token::JsxClose(name.to_string(), self.span(cap.len()));
+                    let token =
+                        Token::JsxClose(name.to_string(), self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if inside_jsx && JSX_STRING_LITERAL.is_match(slice) => {
                     let caps = JSX_STRING_LITERAL.captures(slice).unwrap();
                     let cap = &caps[0];
-                    let token = Token::Str(cap.to_string(), self.span(cap.len()));
+                    let token = Token::Str(cap.to_string(), self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if !inside_jsx && STRING_LITERAL.is_match(slice) => {
                     let caps = STRING_LITERAL.captures(slice).unwrap();
                     let cap1 = &caps[0];
                     let cap2 = &caps[1];
-                    let token = Token::Str(cap2.to_string(), self.span(cap1.len()));
+                    let token = Token::Str(cap2.to_string(), self.span(current_pos, cap1.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap1.len(), token);
                 }
                 _ if NUMBER_LITERAL.is_match(slice) => {
                     let caps = NUMBER_LITERAL.captures(slice).unwrap();
                     let cap1 = &caps[0];
-                    let token = Token::Numeric(cap1.to_string(), self.span(cap1.len()));
+                    let token =
+                        Token::Numeric(cap1.to_string(), self.span(current_pos, cap1.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap1.len(), token);
                 }
                 _ if BOOLEAN_LITERAL.is_match(slice) => {
                     let caps = BOOLEAN_LITERAL.captures(slice).unwrap();
                     let cap1 = &caps[0];
-                    let token = Token::Boolean(cap1.to_string(), self.span(cap1.len()));
+                    let token =
+                        Token::Boolean(cap1.to_string(), self.span(current_pos, cap1.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap1.len(), token);
                 }
                 _ if IDENTIFIER.is_match(slice) => {
                     let cap = &IDENTIFIER.captures(slice).unwrap()[0];
-                    let span = self.span(cap.len());
+                    let span = self.span(current_pos, cap.len());
                     let token = match cap {
                         "fn" => Token::Fn(span),
                         "return" => Token::Return(span),
@@ -161,33 +167,36 @@ impl Lexer {
                 }
                 _ if NEWLINE.is_match(slice) => {
                     let cap = &NEWLINE.captures(slice).unwrap()[0];
-                    let token = Token::NewLine(self.span(cap.len()));
+                    let token = Token::NewLine(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if DOT.is_match(slice) => {
                     let cap = &DOT.captures(slice).unwrap()[0];
-                    let token = Token::Dot(self.span(cap.len()));
+                    let token = Token::Dot(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if COLON.is_match(slice) => {
                     let cap = &COLON.captures(slice).unwrap()[0];
-                    let token = Token::DblColon(self.span(cap.len()));
+                    let token = Token::DblColon(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if COMMA.is_match(slice) => {
                     let cap = &COMMA.captures(slice).unwrap()[0];
-                    let token = Token::Comma(self.span(cap.len()));
+                    let token = Token::Comma(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if GT.is_match(slice) => {
                     let cap = &GT.captures(slice).unwrap()[0];
-                    let token = Token::Gt(self.span(cap.len()));
+                    let token = Token::Gt(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if LT.is_match(slice) => {
                     if !do_not_consume_jsx && JSX_A.is_match(slice) {
                         let caps = JSX_A.captures(slice).unwrap();
-                        let token = Token::JsxOpen(caps[1].to_string(), self.span(caps[1].len()));
+                        let token = Token::JsxOpen(
+                            caps[1].to_string(),
+                            self.span(current_pos, caps[1].len()),
+                        );
                         return self.peek_ahead_advance_with_token(
                             current_pos,
                             caps[1].len() + 1,
@@ -196,42 +205,42 @@ impl Lexer {
                     }
 
                     let cap = &LT.captures(slice).unwrap()[0];
-                    let token = Token::Lt(self.span(cap.len()));
+                    let token = Token::Lt(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if LPAREN.is_match(slice) => {
                     let cap = &LPAREN.captures(slice).unwrap()[0];
-                    let token = Token::LParen(self.span(cap.len()));
+                    let token = Token::LParen(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if RPAREN.is_match(slice) => {
                     let cap = &RPAREN.captures(slice).unwrap()[0];
-                    let token = Token::RParen(self.span(cap.len()));
+                    let token = Token::RParen(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if LBRACE.is_match(slice) => {
                     let cap = &LBRACE.captures(slice).unwrap()[0];
-                    let token = Token::LBrace(self.span(cap.len()));
+                    let token = Token::LBrace(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if RBRACE.is_match(slice) => {
                     let cap = &RBRACE.captures(slice).unwrap()[0];
-                    let token = Token::RBrace(self.span(cap.len()));
+                    let token = Token::RBrace(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if LBRCKT.is_match(slice) => {
                     let cap = &LBRCKT.captures(slice).unwrap()[0];
-                    let token = Token::LSqrBr(self.span(cap.len()));
+                    let token = Token::LSqrBr(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if RBRCKT.is_match(slice) => {
                     let cap = &RBRCKT.captures(slice).unwrap()[0];
-                    let token = Token::RSqrBr(self.span(cap.len()));
+                    let token = Token::RSqrBr(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ if ASSIGNMENT.is_match(slice) => {
                     let cap = &ASSIGNMENT.captures(slice).unwrap()[0];
-                    let token = Token::Eq(self.span(cap.len()));
+                    let token = Token::Eq(self.span(current_pos, cap.len()));
                     return self.peek_ahead_advance_with_token(current_pos, cap.len(), token);
                 }
                 _ => {
@@ -283,8 +292,8 @@ impl Lexer {
         token
     }
 
-    pub fn span(&mut self, how_many: usize) -> Span {
-        Span::new(self.pos, self.pos + how_many)
+    pub fn span(&mut self, current_pos: usize, how_many: usize) -> Span {
+        Span::new(current_pos, current_pos + how_many)
     }
 }
 
